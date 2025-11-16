@@ -2,13 +2,13 @@
 
 {% block content %}
 <style>
-    /* Outer wrapper to control width on all devices */
     .detail-page {
-        max-width: 820px;
+        max-width: 960px;
         margin: 0 auto;
         width: 100%;
     }
 
+    /* Desktop / tablet default layout: 2 columns */
     .detail-shell {
         display: grid;
         grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
@@ -237,58 +237,62 @@
         font-size: 10px;
     }
 
-    /* Tablet / small screens */
-    @media (max-width: 840px) {
+    /* --- MOBILE LAYOUT (max 768px) --- */
+    @media (max-width: 768px) {
         .detail-page {
-            max-width: 640px;
+            max-width: 100%;
         }
+
+        /* One column only */
         .detail-shell {
-            grid-template-columns: 1fr;
-            gap: 14px;
+            display: block;
         }
-        .detail-main {
-            border-radius: 20px;
-            padding: 14px 12px 14px;
-        }
-        .detail-title {
-            font-size: 22px;
-        }
-        .detail-actions {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .btn-primary,
-        .btn-secondary {
-            justify-content: center;
-            width: 100%;
-        }
+
+        /* Poster first, full width card */
         .detail-poster-wrap {
-            order: -1;
-            border-radius: 20px;
+            margin-bottom: 14px;
+            border-radius: 18px;
             padding: 10px 10px 12px;
         }
         .detail-poster {
             height: 200px;
-            border-radius: 18px;
+            border-radius: 14px;
         }
-    }
 
-    /* Very small mobile */
-    @media (max-width: 480px) {
-        .detail-page {
-            max-width: 95%;
-        }
+        /* Main content below poster */
         .detail-main {
+            border-radius: 18px;
             padding: 12px 10px 12px;
         }
         .detail-title {
-            font-size: 20px;
+            font-size: 22px;
         }
         .detail-description {
             font-size: 12px;
         }
         .detail-extra {
             font-size: 11px;
+        }
+
+        /* Buttons full width vertical stack */
+        .detail-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Extra small mobiles */
+    @media (max-width: 480px) {
+        .detail-main {
+            padding: 10px 8px 10px;
+        }
+        .detail-title {
+            font-size: 20px;
         }
         .detail-poster {
             height: 180px;
@@ -298,6 +302,17 @@
 
 <div class="detail-page">
     <div class="detail-shell">
+        <!-- Right: poster side (will go top on mobile) -->
+        <aside class="detail-poster-wrap">
+            <div class="detail-poster">
+                <!-- Later set background-image from movie.poster_url -->
+            </div>
+            <div class="detail-small-meta">
+                <span>ID: {{ movie.id or "preview" }}</span>
+                <span>Views: {{ movie.views or "12.4K" }}</span>
+            </div>
+        </aside>
+
         <!-- Left: main info -->
         <section class="detail-main">
             <div class="detail-tagline">Now streaming on Movies Magic Club</div>
@@ -380,17 +395,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Right: poster side -->
-        <aside class="detail-poster-wrap">
-            <div class="detail-poster">
-                <!-- Later set background-image from movie.poster_url -->
-            </div>
-            <div class="detail-small-meta">
-                <span>ID: {{ movie.id or "preview" }}</span>
-                <span>Views: {{ movie.views or "12.4K" }}</span>
-            </div>
-        </aside>
     </div>
 </div>
 {% endblock %}
