@@ -4,3 +4,4 @@ pyrogram
 tgcrypto
 python-dotenv
 motor
+jinja2
