@@ -5,3 +5,4 @@ tgcrypto
 python-dotenv
 motor
 jinja2
+itsdangerous==2.1.2
