@@ -25,6 +25,7 @@ def is_admin(request: Request) -> bool:
 
 # ---------- PUBLIC PAGES ----------
 
+
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     db = get_db()
@@ -39,7 +40,7 @@ async def home(request: Request):
     if db is not None:
         movies_col = db["movies"]
 
-        # latest 5 (hero slider)
+        # Latest 5 (hero slider)
         cursor = movies_col.find().sort("_id", -1).limit(5)
         latest_movies = [
             {
@@ -198,6 +199,7 @@ async def movies_count():
 
 
 # ---------- ADMIN LOGIN + DASHBOARD ----------
+
 
 @router.get("/admin/login", response_class=HTMLResponse)
 async def admin_login_form(request: Request):
@@ -372,3 +374,4 @@ async def admin_delete_movie(request: Request, movie_id: str):
         msg = "Failed+to+delete+movie"
 
     return RedirectResponse(f"/admin/movies?message={msg}", status_code=303)
+            
