@@ -5,6 +5,8 @@
     <title>{{ title or "MOVIES MAGIC CLUB" }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- Optional fonts (you already used system font, keep/change later) -->
+
     <style>
         :root {
             --bg-body: #020617;
@@ -116,6 +118,22 @@
             gap: 10px;
         }
 
+        /* Admin link */
+        .mmc-admin-link {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(15, 23, 42, 0.85);
+        }
+
+        .mmc-admin-link:hover {
+            color: #e5e7eb;
+            border-color: rgba(248, 250, 252, 0.35);
+        }
+
         /* Search box */
         .mmc-search {
             position: relative;
@@ -225,6 +243,10 @@
         </div>
 
         <div class="mmc-nav-right">
+            <!-- Admin link -->
+            <a href="/admin/login" class="mmc-admin-link">Admin</a>
+
+            <!-- Search -->
             <div class="mmc-search">
                 <form action="/search" method="get">
                     <input
@@ -236,6 +258,7 @@
                     <button type="submit" class="mmc-search-btn">🔍</button>
                 </form>
             </div>
+
             <div class="mmc-avatar"></div>
         </div>
     </header>
