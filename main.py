@@ -45,13 +45,33 @@ async def start_command(client, message):
 
 # ---------- FASTAPI ROUTES ----------
 
-# Home page – dashboard
+# Home page – dashboard (with latest 5 movies for hero slider)
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    # TODO: later pass real movie lists from MongoDB
+    db = get_db()
+    latest_movies = []
+
+    if db is not None:
+        # get last 5 inserted movies (approx latest) [web:60]
+        cursor = db["movies"].find().sort("_id", -1).limit(5)
+        latest_movies = [
+            {
+                "id": str(doc.get("_id")),
+                "title": doc.get("title", "Untitled"),
+                "year": doc.get("year"),
+                "language": doc.get("language"),
+                "quality": doc.get("quality", "HD"),
+                "category": doc.get("category"),
+            }
+            async for doc in cursor
+        ]
+
     return templates.TemplateResponse(
         "index.html",
-        {"request": request},
+        {
+            "request": request,
+            "latest_movies": latest_movies,
+        },
     )
 
 
@@ -62,7 +82,7 @@ async def search_movies(request: Request, q: str = ""):
     movies = []
 
     if db is not None and q.strip():
-        # TODO: later replace with real MongoDB search using regex or text index
+        # basic regex search on title (case‑insensitive) [web:60]
         cursor = db["movies"].find(
             {"title": {"$regex": q, "$options": "i"}}
         ).limit(30)
@@ -95,7 +115,7 @@ async def movie_detail(request: Request, movie_id: str):
         from bson import ObjectId
 
         try:
-            # Try treat movie_id as ObjectId (real DB id)
+            # Try treat movie_id as ObjectId (real DB id) [web:60]
             oid = ObjectId(movie_id)
             movie = await db["movies"].find_one({"_id": oid})
         except Exception:
@@ -118,7 +138,7 @@ async def movie_detail(request: Request, movie_id: str):
             "views": movie.get("views", "12.4K"),
         }
     else:
-        # fallback dummy data for now
+        # fallback dummy data for dummy ids (tamil-1 etc.)
         movie_ctx = {
             "id": movie_id,
             "title": "Sample Movie Title",
