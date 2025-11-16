@@ -1,23 +1,23 @@
 import os
 import asyncio
 
-from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.templating import Jinja2Templates
 
 from pyrogram import Client, filters, idle
 
 from db import connect_to_mongo, close_mongo_connection, get_db
 from routes.movies import router as movies_router
-from config import API_ID, API_HASH, BOT_TOKEN  # <-- from config.py
-from fastapi import Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from config import API_ID, API_HASH, BOT_TOKEN  # from config.py
 
 
 app = FastAPI()
+
+# Jinja2 templates directory
 templates = Jinja2Templates(directory="templates")
 
-# include movies API router
+# Include movies API router
 app.include_router(movies_router)
 
 
@@ -26,7 +26,7 @@ bot = Client(
     "movie_webapp_bot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN,  
+    bot_token=BOT_TOKEN,
 )
 
 
@@ -34,15 +34,28 @@ bot = Client(
 async def start_command(client, message):
     text = (
         "👋 Hi!\n\n"
-        "This is your new Movie WebApp bot skeleton.\n"
+        "This is your new Movies Magic Club bot skeleton.\n"
         "Right now only /start works.\n"
         "Next steps: add MongoDB movies, website UI, web app, verification, admin dashboard. 🚀"
     )
     await message.reply_text(text)
+
 # ----------------------------
 
 
 # ---------- FASTAPI ROUTES ----------
+
+# Home page – dashboard
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    # TODO: later pass real movie lists from MongoDB
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request},
+    )
+
+
+# Movie detail page
 @app.get("/movie/{movie_id}", response_class=HTMLResponse)
 async def movie_detail(request: Request, movie_id: str):
     # TODO: later fetch from MongoDB using movie_id
@@ -65,10 +78,12 @@ async def movie_detail(request: Request, movie_id: str):
         "movie_detail.html",
         {"request": request, "movie": movie},
     )
-       
+
+
 @app.get("/health", response_class=PlainTextResponse)
 async def health():
     return "OK"
+
 
 @app.get("/debug/movies-count", response_class=PlainTextResponse)
 async def movies_count():
@@ -77,6 +92,7 @@ async def movies_count():
         return "MongoDB not connected"
     count = await db["movies"].count_documents({})
     return f"Movies in DB: {count}"
+
 # ------------------------------------
 
 
