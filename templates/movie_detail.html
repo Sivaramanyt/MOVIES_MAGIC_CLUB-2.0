@@ -144,6 +144,13 @@
         overflow-x: auto;
         padding-bottom: 4px;
     }
+    .suggest-row::-webkit-scrollbar {
+        height: 5px;
+    }
+    .suggest-row::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.5);
+        border-radius: 999px;
+    }
     .suggest-card {
         border-radius: 16px;
         background: rgba(15, 23, 42, 0.96);
@@ -226,12 +233,47 @@
     @media (max-width: 840px) {
         .detail-shell {
             grid-template-columns: 1fr;
+            gap: 14px;
+        }
+        .detail-main {
+            border-radius: 20px;
+            padding: 14px 12px 14px;
+        }
+        .detail-title {
+            font-size: 22px;
+        }
+        .detail-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .btn-primary,
+        .btn-secondary {
+            justify-content: center;
+            width: 100%;
         }
         .detail-poster-wrap {
             order: -1;
+            border-radius: 20px;
+            padding: 10px 10px 12px;
         }
         .detail-poster {
-            height: 220px;
+            height: 200px;
+            border-radius: 18px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .detail-main {
+            padding: 12px 10px 12px;
+        }
+        .detail-title {
+            font-size: 20px;
+        }
+        .detail-description {
+            font-size: 12px;
+        }
+        .detail-extra {
+            font-size: 11px;
         }
     }
 </style>
@@ -321,7 +363,7 @@
     <!-- Right: poster side -->
     <aside class="detail-poster-wrap">
         <div class="detail-poster">
-            <!-- Later we will set background-image from movie.poster_url -->
+            <!-- Later set background-image from movie.poster_url -->
         </div>
         <div class="detail-small-meta">
             <span>ID: {{ movie.id or "preview" }}</span>
@@ -330,3 +372,4 @@
     </aside>
 </div>
 {% endblock %}
+    
