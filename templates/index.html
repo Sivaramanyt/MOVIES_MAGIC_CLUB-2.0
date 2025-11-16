@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 style="font-size:18px; font-weight:600; margin-bottom:10px;">
+        Trending on Movies Magic Club
+    </h1>
+    <p style="font-size:13px; color:#9ca3af; margin-bottom:18px;">
+        Movies list will appear here soon. This is just a layout preview.
+    </p>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px;">
+        {% for i in range(6) %}
+        <div style="background:#020617; border-radius:14px; border:1px solid #1e293b; height:210px;"></div>
+        {% endfor %}
+    </div>
+{% endblock %}
