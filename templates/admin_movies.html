@@ -3,19 +3,69 @@
 {% block content %}
 <style>
   .admin-shell {
-      max-width: 720px;
+      max-width: 960px;
       margin: 0 auto;
   }
   .admin-title {
       font-size: 18px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
   }
   .admin-sub {
       font-size: 12px;
       color: var(--text-muted);
-      margin-bottom: 14px;
+      margin-bottom: 12px;
   }
+
+  /* Stats row */
+  .admin-stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+  }
+  .admin-stat-card {
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      font-size: 12px;
+  }
+  .admin-stat-label {
+      color: var(--text-muted);
+      margin-bottom: 4px;
+  }
+  .admin-stat-value {
+      font-size: 16px;
+      font-weight: 600;
+  }
+
+  /* Action tabs */
+  .admin-tabs {
+      margin-top: 4px;
+      display: inline-flex;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      margin-bottom: 10px;
+  }
+  .admin-tab-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-muted);
+  }
+  .admin-tab-btn.active {
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      color: #fef2f2;
+      box-shadow: 0 6px 14px rgba(236, 72, 153, 0.6);
+  }
+
   .admin-card {
       background: rgba(15, 23, 42, 0.95);
       border-radius: 20px;
@@ -25,6 +75,7 @@
       flex-direction: column;
       gap: 10px;
   }
+
   .admin-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -82,116 +133,273 @@
       background: linear-gradient(135deg, #22c55e, #16a34a);
       color: #ecfdf5;
   }
+  .admin-btn-danger {
+      border-radius: 999px;
+      border: none;
+      padding: 5px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fee2e2;
+  }
   .admin-msg {
       margin-top: 8px;
       font-size: 12px;
       color: var(--accent-emerald);
   }
+
+  /* Panels */
+  .admin-panel {
+      display: none;
+  }
+  .admin-panel.active {
+      display: block;
+  }
+
+  /* Table for edit/delete */
+  .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+  }
+  .admin-table th,
+  .admin-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.8);
+  }
+  .admin-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 500;
+  }
 </style>
 
 <section class="admin-shell">
-  <h1 class="admin-title">Admin · Add movie</h1>
+  <h1 class="admin-title">Admin · Dashboard</h1>
   <p class="admin-sub">
-      Use this form to quickly add a movie into the Movies Magic Club database.
+      Overview of Movies Magic Club library and quick actions.
   </p>
 
-  <article class="admin-card">
-      <!-- IMPORTANT: enctype added for file upload -->
-      <form action="/admin/movies" method="post" enctype="multipart/form-data">
-          <div class="admin-grid">
-              <div class="admin-field">
-                  <label>Title</label>
-                  <input name="title" class="admin-input" required />
+  <!-- Stats row -->
+  <div class="admin-stats-row">
+      <div class="admin-stat-card">
+          <div class="admin-stat-label">Total movies</div>
+          <div class="admin-stat-value">{{ total_movies or 0 }}</div>
+      </div>
+      <div class="admin-stat-card">
+          <div class="admin-stat-label">Tamil</div>
+          <div class="admin-stat-value">{{ tamil_count or 0 }}</div>
+      </div>
+      <div class="admin-stat-card">
+          <div class="admin-stat-label">Telugu</div>
+          <div class="admin-stat-value">{{ telugu_count or 0 }}</div>
+      </div>
+      <div class="admin-stat-card">
+          <div class="admin-stat-label">Hindi</div>
+          <div class="admin-stat-value">{{ hindi_count or 0 }}</div>
+      </div>
+      <div class="admin-stat-card">
+          <div class="admin-stat-label">Malayalam</div>
+          <div class="admin-stat-value">{{ malayalam_count or 0 }}</div>
+      </div>
+      <div class="admin-stat-card">
+          <div class="admin-stat-label">Kannada</div>
+          <div class="admin-stat-value">{{ kannada_count or 0 }}</div>
+      </div>
+  </div>
+
+  <!-- Action tabs -->
+  <div class="admin-tabs">
+      <button type="button" class="admin-tab-btn active" data-panel="panel-add">Add movie</button>
+      <button type="button" class="admin-tab-btn" data-panel="panel-edit">Edit movies</button>
+      <button type="button" class="admin-tab-btn" data-panel="panel-delete">Delete movies</button>
+  </div>
+
+  <!-- ADD MOVIE PANEL -->
+  <section id="panel-add" class="admin-panel active">
+      <article class="admin-card">
+          <form action="/admin/movies" method="post" enctype="multipart/form-data">
+              <div class="admin-grid">
+                  <div class="admin-field">
+                      <label>Title</label>
+                      <input name="title" class="admin-input" required />
+                  </div>
+
+                  <div class="admin-field">
+                      <label>Year</label>
+                      <input name="year" class="admin-input" placeholder="2024" />
+                  </div>
+
+                  <div class="admin-field">
+                      <label>Primary language (row)</label>
+                      <select name="language" class="admin-select">
+                          <option value="Tamil">Tamil</option>
+                          <option value="Telugu">Telugu</option>
+                          <option value="Hindi">Hindi</option>
+                          <option value="Malayalam">Malayalam</option>
+                          <option value="Kannada">Kannada</option>
+                          <option value="English">English</option>
+                      </select>
+                  </div>
+
+                  <div class="admin-field">
+                      <label>Quality</label>
+                      <input name="quality" class="admin-input" placeholder="HD / 720p / 1080p" />
+                  </div>
+
+                  <div class="admin-field">
+                      <label>Category / Genre</label>
+                      <input name="category" class="admin-input" placeholder="Action / Drama ..." />
+                  </div>
+
+                  <div class="admin-field">
+                      <label>Watch URL</label>
+                      <input name="watch_url" class="admin-input" placeholder="https://..." />
+                  </div>
+                  <div class="admin-field">
+                      <label>Download URL</label>
+                      <input name="download_url" class="admin-input" placeholder="https://..." />
+                  </div>
+
+                  <div class="admin-field">
+                      <label>Poster image</label>
+                      <input type="file" name="poster" class="admin-input" accept="image/*" />
+                      <small style="font-size:10px; color:var(--text-muted);">
+                          Upload a vertical poster (e.g. 600×900). Saved and shown on website.
+                      </small>
+                  </div>
               </div>
 
-              <div class="admin-field">
-                  <label>Year</label>
-                  <input name="year" class="admin-input" placeholder="2024" />
+              <div class="admin-field" style="margin-top:8px;">
+                  <label>Available audio languages (multi‑select)</label>
+                  <div class="lang-multi">
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Tamil" /> Tamil
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Telugu" /> Telugu
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Hindi" /> Hindi
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Malayalam" /> Malayalam
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Kannada" /> Kannada
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="English" /> English
+                      </label>
+                  </div>
               </div>
 
-              <!-- Primary language (for home page row) -->
-              <div class="admin-field">
-                  <label>Primary language (row)</label>
-                  <select name="language" class="admin-select">
-                      <option value="Tamil">Tamil</option>
-                      <option value="Telugu">Telugu</option>
-                      <option value="Hindi">Hindi</option>
-                      <option value="Malayalam">Malayalam</option>
-                      <option value="Kannada">Kannada</option>
-                      <option value="English">English</option>
-                  </select>
+              <div class="admin-field" style="margin-top:8px;">
+                  <label>Description</label>
+                  <textarea name="description" class="admin-textarea"
+                            placeholder="Short description about the movie..."></textarea>
               </div>
 
-              <div class="admin-field">
-                  <label>Quality</label>
-                  <input name="quality" class="admin-input" placeholder="HD / 720p / 1080p" />
+              <div class="admin-actions">
+                  <button type="submit" class="admin-btn-primary">Save movie</button>
               </div>
 
-              <div class="admin-field">
-                  <label>Category / Genre</label>
-                  <input name="category" class="admin-input" placeholder="Action / Drama ..." />
-              </div>
+              {% if message %}
+              <div class="admin-msg">{{ message }}</div>
+              {% endif %}
+          </form>
+      </article>
+  </section>
 
-              <!-- Watch / Download URLs -->
-              <div class="admin-field">
-                  <label>Watch URL</label>
-                  <input name="watch_url" class="admin-input" placeholder="https://..." />
-              </div>
-              <div class="admin-field">
-                  <label>Download URL</label>
-                  <input name="download_url" class="admin-input" placeholder="https://..." />
-              </div>
-
-              <!-- Poster upload -->
-              <div class="admin-field">
-                  <label>Poster image</label>
-                  <input type="file" name="poster" class="admin-input" accept="image/*" />
-                  <small style="font-size:10px; color:var(--text-muted);">
-                      Upload a vertical poster (e.g. 600×900). Saved and shown on website.
-                  </small>
-              </div>
+  <!-- EDIT MOVIES PANEL (list only for now) -->
+  <section id="panel-edit" class="admin-panel">
+      <article class="admin-card">
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">
+              Recent movies (click Edit per row – next step we wire full edit form).
           </div>
-
-          <!-- Multi-language audio support -->
-          <div class="admin-field" style="margin-top:8px;">
-              <label>Available audio languages (multi‑select)</label>
-              <div class="lang-multi">
-                  <label class="lang-chip">
-                      <input type="checkbox" name="languages" value="Tamil" /> Tamil
-                  </label>
-                  <label class="lang-chip">
-                      <input type="checkbox" name="languages" value="Telugu" /> Telugu
-                  </label>
-                  <label class="lang-chip">
-                      <input type="checkbox" name="languages" value="Hindi" /> Hindi
-                  </label>
-                  <label class="lang-chip">
-                      <input type="checkbox" name="languages" value="Malayalam" /> Malayalam
-                  </label>
-                  <label class="lang-chip">
-                      <input type="checkbox" name="languages" value="Kannada" /> Kannada
-                  </label>
-                  <label class="lang-chip">
-                      <input type="checkbox" name="languages" value="English" /> English
-                  </label>
-              </div>
+          <div style="max-height:260px; overflow-y:auto;">
+              <table class="admin-table">
+                  <thead>
+                      <tr>
+                          <th>Title</th>
+                          <th>Year</th>
+                          <th>Lang</th>
+                          <th>Quality</th>
+                          <th>Actions</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {% for m in movies %}
+                      <tr>
+                          <td>{{ m.title }}</td>
+                          <td>{{ m.year or "" }}</td>
+                          <td>{{ m.language or "" }}</td>
+                          <td>{{ m.quality or "" }}</td>
+                          <td>
+                              <a href="/admin/movies/{{ m.id }}/edit"
+                                 style="font-size:11px; color:#38bdf8; text-decoration:none;">
+                                  Edit
+                              </a>
+                          </td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
           </div>
+      </article>
+  </section>
 
-          <div class="admin-field" style="margin-top:8px;">
-              <label>Description</label>
-              <textarea name="description" class="admin-textarea"
-                        placeholder="Short description about the movie..."></textarea>
+  <!-- DELETE MOVIES PANEL -->
+  <section id="panel-delete" class="admin-panel">
+      <article class="admin-card">
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">
+              Delete movies (be careful – this action cannot be undone).
           </div>
-
-          <div class="admin-actions">
-              <button type="submit" class="admin-btn-primary">Save movie</button>
+          <div style="max-height:260px; overflow-y:auto;">
+              <table class="admin-table">
+                  <thead>
+                      <tr>
+                          <th>Title</th>
+                          <th>Year</th>
+                          <th>Lang</th>
+                          <th></th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {% for m in movies %}
+                      <tr>
+                          <td>{{ m.title }}</td>
+                          <td>{{ m.year or "" }}</td>
+                          <td>{{ m.language or "" }}</td>
+                          <td>
+                              <form action="/admin/movies/{{ m.id }}/delete" method="post"
+                                    onsubmit="return confirm('Delete {{ m.title }}?');">
+                                  <button type="submit" class="admin-btn-danger">Delete</button>
+                              </form>
+                          </td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
           </div>
-
-          {% if message %}
-          <div class="admin-msg">{{ message }}</div>
-          {% endif %}
-      </form>
-  </article>
+      </article>
+  </section>
 </section>
+
+<script>
+  // Simple tab switching for Add / Edit / Delete
+  const tabButtons = document.querySelectorAll(".admin-tab-btn");
+  const panels = document.querySelectorAll(".admin-panel");
+
+  tabButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+          const target = btn.getAttribute("data-panel");
+          tabButtons.forEach(b => b.classList.remove("active"));
+          panels.forEach(p => p.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById(target).classList.add("active");
+      });
+  });
+</script>
 {% endblock %}
   
