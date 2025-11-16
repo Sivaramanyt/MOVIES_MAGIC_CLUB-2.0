@@ -17,7 +17,7 @@ app = FastAPI()
 # Jinja2 templates directory
 templates = Jinja2Templates(directory="templates")
 
-# Include movies API router
+# Include movies API router (JSON APIs)
 app.include_router(movies_router)
 
 
@@ -55,28 +55,89 @@ async def home(request: Request):
     )
 
 
+# Search page – results + “REQUEST A MOVIE”
+@app.get("/search", response_class=HTMLResponse)
+async def search_movies(request: Request, q: str = ""):
+    db = get_db()
+    movies = []
+
+    if db and q.strip():
+        # TODO: later replace with real MongoDB search using regex or text index
+        # example: {"title": {"$regex": q, "$options": "i"}}
+        cursor = db["movies"].find({"title": {"$regex": q, "$options": "i"}}).limit(30)
+        movies = [
+            {
+                "id": str(doc.get("_id")),
+                "title": doc.get("title", ""),
+                "year": doc.get("year"),
+                "language": doc.get("language"),
+                "quality": doc.get("quality"),
+            }
+            async for doc in cursor
+        ]
+
+    context = {
+        "request": request,
+        "query": q,
+        "movies": movies,
+    }
+    return templates.TemplateResponse("search.html", context)
+
+
 # Movie detail page
 @app.get("/movie/{movie_id}", response_class=HTMLResponse)
 async def movie_detail(request: Request, movie_id: str):
-    # TODO: later fetch from MongoDB using movie_id
-    movie = {
-        "id": movie_id,
-        "title": "Sample Movie Title",
-        "year": 2024,
-        "language": "Tamil",
-        "quality": "HD",
-        "category": "Action",
-        "is_multi_dubbed": True,
-        "duration": "2h 20m",
-        "description": "",
-        "audio": "Tamil, Telugu, Hindi",
-        "subtitles": "English",
-        "size": "2.1 GB",
-        "views": "12.4K",
-    }
+    db = get_db()
+    movie = None
+
+    if db:
+        from bson import ObjectId
+
+        try:
+            # First try normal ObjectId
+            oid = ObjectId(movie_id)
+            movie = await db["movies"].find_one({"_id": oid})
+        except Exception:
+            # If not a valid ObjectId (dummy ids like 'tamil-1'), skip DB lookup
+            movie = None
+
+    if movie:
+        movie_ctx = {
+            "id": str(movie.get("_id")),
+            "title": movie.get("title", "Sample Movie Title"),
+            "year": movie.get("year", 2024),
+            "language": movie.get("language", "Tamil"),
+            "quality": movie.get("quality", "HD"),
+            "category": movie.get("category", "Action"),
+            "is_multi_dubbed": movie.get("is_multi_dubbed", False),
+            "duration": movie.get("duration", "2h 20m"),
+            "description": movie.get("description", ""),
+            "audio": movie.get("audio", "Tamil, Telugu, Hindi"),
+            "subtitles": movie.get("subtitles", "English"),
+            "size": movie.get("size", "2.1 GB"),
+            "views": movie.get("views", "12.4K"),
+        }
+    else:
+        # fallback dummy data for now
+        movie_ctx = {
+            "id": movie_id,
+            "title": "Sample Movie Title",
+            "year": 2024,
+            "language": "Tamil",
+            "quality": "HD",
+            "category": "Action",
+            "is_multi_dubbed": True,
+            "duration": "2h 20m",
+            "description": "",
+            "audio": "Tamil, Telugu, Hindi",
+            "subtitles": "English",
+            "size": "2.1 GB",
+            "views": "12.4K",
+        }
+
     return templates.TemplateResponse(
         "movie_detail.html",
-        {"request": request, "movie": movie},
+        {"request": request, "movie": movie_ctx},
     )
 
 
