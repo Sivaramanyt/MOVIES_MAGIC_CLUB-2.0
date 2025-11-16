@@ -61,10 +61,11 @@ async def search_movies(request: Request, q: str = ""):
     db = get_db()
     movies = []
 
-    if db and q.strip():
+    if db is not None and q.strip():
         # TODO: later replace with real MongoDB search using regex or text index
-        # example: {"title": {"$regex": q, "$options": "i"}}
-        cursor = db["movies"].find({"title": {"$regex": q, "$options": "i"}}).limit(30)
+        cursor = db["movies"].find(
+            {"title": {"$regex": q, "$options": "i"}}
+        ).limit(30)
         movies = [
             {
                 "id": str(doc.get("_id")),
@@ -90,15 +91,14 @@ async def movie_detail(request: Request, movie_id: str):
     db = get_db()
     movie = None
 
-    if db:
+    if db is not None:
         from bson import ObjectId
 
         try:
-            # First try normal ObjectId
+            # Try treat movie_id as ObjectId (real DB id)
             oid = ObjectId(movie_id)
             movie = await db["movies"].find_one({"_id": oid})
         except Exception:
-            # If not a valid ObjectId (dummy ids like 'tamil-1'), skip DB lookup
             movie = None
 
     if movie:
@@ -149,7 +149,7 @@ async def health():
 @app.get("/debug/movies-count", response_class=PlainTextResponse)
 async def movies_count():
     db = get_db()
-    if not db:
+    if db is None:
         return "MongoDB not connected"
     count = await db["movies"].count_documents({})
     return f"Movies in DB: {count}"
