@@ -9,9 +9,13 @@ from pyrogram import Client, filters, idle
 from db import connect_to_mongo, close_mongo_connection, get_db
 from routes.movies import router as movies_router
 from config import API_ID, API_HASH, BOT_TOKEN  # <-- from config.py
+from fastapi import Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 # include movies API router
 app.include_router(movies_router)
@@ -39,10 +43,10 @@ async def start_command(client, message):
 
 
 # ---------- FASTAPI ROUTES ----------
-@app.get("/", response_class=PlainTextResponse)
-async def root():
-    return "Bot + FastAPI is running ✅"
-
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("base.html", {"request": request})
+    
 
 @app.get("/health", response_class=PlainTextResponse)
 async def health():
