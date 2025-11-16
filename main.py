@@ -43,11 +43,27 @@ async def start_command(client, message):
 
 
 # ---------- FASTAPI ROUTES ----------
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
+@app.get("/movie/{movie_id}", response_class=HTMLResponse)
+async def movie_detail(request: Request, movie_id: str):
+    # TODO: later fetch from MongoDB using movie_id
+    movie = {
+        "id": movie_id,
+        "title": "Sample Movie Title",
+        "year": 2024,
+        "language": "Tamil",
+        "quality": "HD",
+        "category": "Action",
+        "is_multi_dubbed": True,
+        "duration": "2h 20m",
+        "description": "",
+        "audio": "Tamil, Telugu, Hindi",
+        "subtitles": "English",
+        "size": "2.1 GB",
+        "views": "12.4K",
+    }
     return templates.TemplateResponse(
-        "index.html",
-        {"request": request}
+        "movie_detail.html",
+        {"request": request, "movie": movie},
     )
        
 @app.get("/health", response_class=PlainTextResponse)
