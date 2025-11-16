@@ -2,35 +2,350 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SR Movies</title>
+    <title>{{ title or "MOVIES MAGIC CLUB" }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+        :root {
+            --bg-main: #050816;
+            --bg-elevated: #020617;
+            --bg-panel: #020617;
+            --border-subtle: #1e293b;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+        }
+        * {
+            box-sizing: border-box;
+        }
         body {
             margin: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #050816;
-            color: #f9fafb;
+            background: radial-gradient(circle at top, #0b1120 0, #020617 55%, #020617 100%);
+            color: var(--text-main);
         }
-        header {
-            padding: 16px 20px;
-            background: linear-gradient(90deg, #0f172a, #111827);
-            border-bottom: 1px solid #1f2937;
+        .app-shell {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr) 280px;
+            gap: 16px;
+            height: 100vh;
+            padding: 14px 14px 18px;
+        }
+        /* Left sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, #020617 0, #020617 45%, #020617 100%);
+            border-radius: 18px;
+            border: 1px solid var(--border-subtle);
+            padding: 18px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .brand {
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+        .brand span {
+            color: var(--accent-red);
+        }
+        .nav-group-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            margin: 10px 0 4px;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .nav-item {
+            font-size: 13px;
+            padding: 7px 8px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .nav-item.active {
+            background: rgba(248, 250, 252, 0.05);
+            color: var(--text-main);
+        }
+        .nav-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--accent-red);
+        }
+        .sidebar-footer {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.9;
+        }
+
+        /* Center main panel */
+        .main-panel {
+            background: rgba(15, 23, 42, 0.96);
+            border-radius: 18px;
+            border: 1px solid var(--border-subtle);
+            padding: 16px 18px 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .tabs-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            margin-bottom: 16px;
         }
-        .logo {
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            font-size: 18px;
+        .tabs {
+            display: flex;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .tab-pill {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .tab-pill.active {
+            border-color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--text-main);
+        }
+        .main-scroll {
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        /* Right panel */
+        .right-panel {
+            background: rgba(15, 23, 42, 0.96);
+            border-radius: 18px;
+            border: 1px solid var(--border-subtle);
+            padding: 14px 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .profile-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 9px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.8);
+            border: 1px solid #111827;
+        }
+        .avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #f97316, #ec4899);
+        }
+        .profile-meta {
+            font-size: 11px;
+        }
+        .profile-name {
+            font-weight: 600;
+        }
+        .profile-sub {
+            color: var(--text-muted);
+        }
+        .search-box {
+            margin-top: 6px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 7px 9px;
+            border-radius: 999px;
+            border: 1px solid #111827;
+            background: #020617;
+            color: var(--text-main);
+            font-size: 12px;
+        }
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        .right-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin: 4px 0 6px;
+        }
+        .genre-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .chip {
+            font-size: 11px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            border: 1px solid #1f2937;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .chip.active {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: #fef2f2;
+        }
+        .mini-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .mini-item {
+            display: flex;
+            gap: 8px;
+            font-size: 11px;
+            align-items: center;
+        }
+        .mini-poster {
+            width: 44px;
+            height: 28px;
+            border-radius: 7px;
+            background: #020617;
+        }
+        .mini-meta-title {
+            font-weight: 500;
+        }
+        .mini-meta-sub {
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                height: auto;
+            }
+            .sidebar {
+                flex-direction: row;
+                align-items: center;
+                gap: 16px;
+            }
+            .sidebar-footer {
+                display: none;
+            }
+            .right-panel {
+                order: 3;
+            }
         }
     </style>
 </head>
 <body>
-<header>
-    <div class="logo">SR MOVIES</div>
-    <div style="font-size: 12px; color:#9ca3af;">Browse · Watch · Enjoy</div>
-</header>
+
+<div class="app-shell">
+    <!-- Left sidebar -->
+    <aside class="sidebar">
+        <div>
+            <div class="brand">
+                MOVIES <span>MAGIC</span> CLUB
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-title">Menu</div>
+                <ul class="nav-list">
+                    <li class="nav-item active">
+                        <span class="nav-dot"></span>
+                        <span>Home</span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-dot" style="opacity:0;"></span>
+                        <span>Movies</span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-dot" style="opacity:0;"></span>
+                        <span>Series</span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-dot" style="opacity:0;"></span>
+                        <span>Favourites</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            © {{ year or 2025 }} · Movies Magic Club
+        </div>
+    </aside>
+
+    <!-- Center main panel -->
+    <main class="main-panel">
+        <div class="tabs-row">
+            <div class="tabs">
+                <div class="tab-pill active">Movies</div>
+                <div class="tab-pill">Series</div>
+                <div class="tab-pill">TV Shows</div>
+            </div>
+            <div style="font-size:11px; color: var(--text-muted);">
+                Dashboard · v1.0 (Preview)
+            </div>
+        </div>
+
+        <div class="main-scroll">
+            {% block content %}
+            <!-- Page specific content injected here -->
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Right panel -->
+    <aside class="right-panel">
+        <div>
+            <div class="profile-chip">
+                <div class="avatar"></div>
+                <div class="profile-meta">
+                    <div class="profile-name">Guest User</div>
+                    <div class="profile-sub">Enjoy Movies Magic Club</div>
+                </div>
+            </div>
+            <div class="search-box">
+                <input class="search-input" placeholder="Search movies..." />
+            </div>
+        </div>
+
+        <div>
+            <div class="right-section-title">Genres</div>
+            <div class="genre-chips">
+                <button class="chip active">Action</button>
+                <button class="chip">Comedy</button>
+                <button class="chip">Romance</button>
+                <button class="chip">Thriller</button>
+                <button class="chip">Horror</button>
+                <button class="chip">Sci‑Fi</button>
+            </div>
+        </div>
+
+        <div>
+            <div class="right-section-title">Recent activity</div>
+            <div class="mini-list">
+                <div class="mini-item">
+                    <div class="mini-poster"></div>
+                    <div>
+                        <div class="mini-meta-title">No activity yet</div>
+                        <div class="mini-meta-sub">Watch something to see it here</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
 
 </body>
-</html>
+        </html>
+            
