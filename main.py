@@ -45,15 +45,23 @@ async def start_command(client, message):
 
 # ---------- FASTAPI ROUTES ----------
 
-# Home page – dashboard (with latest 5 movies for hero slider)
+# Home page – dashboard (hero + language rows from MongoDB)
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     db = get_db()
+
     latest_movies = []
+    tamil_movies = []
+    telugu_movies = []
+    hindi_movies = []
+    malayalam_movies = []
+    kannada_movies = []
 
     if db is not None:
-        # get last 5 inserted movies (approx latest) [web:60]
-        cursor = db["movies"].find().sort("_id", -1).limit(5)
+        movies_col = db["movies"]
+
+        # latest 5 (for hero slider) [web:60]
+        cursor = movies_col.find().sort("_id", -1).limit(5)
         latest_movies = [
             {
                 "id": str(doc.get("_id")),
@@ -66,11 +74,41 @@ async def home(request: Request):
             async for doc in cursor
         ]
 
+        # helper to fetch by language
+        async def fetch_by_language(lang: str, limit: int = 12):
+            cur = (
+                movies_col
+                .find({"language": lang})
+                .sort("_id", -1)
+                .limit(limit)
+            )
+            return [
+                {
+                    "id": str(d.get("_id")),
+                    "title": d.get("title", "Untitled"),
+                    "year": d.get("year"),
+                    "language": d.get("language"),
+                    "quality": d.get("quality", "HD"),
+                }
+                async for d in cur
+            ]
+
+        tamil_movies = await fetch_by_language("Tamil")
+        telugu_movies = await fetch_by_language("Telugu")
+        hindi_movies = await fetch_by_language("Hindi")
+        malayalam_movies = await fetch_by_language("Malayalam")
+        kannada_movies = await fetch_by_language("Kannada")
+
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "latest_movies": latest_movies,
+            "tamil_movies": tamil_movies,
+            "telugu_movies": telugu_movies,
+            "hindi_movies": hindi_movies,
+            "malayalam_movies": malayalam_movies,
+            "kannada_movies": kannada_movies,
         },
     )
 
@@ -82,7 +120,6 @@ async def search_movies(request: Request, q: str = ""):
     movies = []
 
     if db is not None and q.strip():
-        # basic regex search on title (case‑insensitive) [web:60]
         cursor = db["movies"].find(
             {"title": {"$regex": q, "$options": "i"}}
         ).limit(30)
@@ -115,7 +152,6 @@ async def movie_detail(request: Request, movie_id: str):
         from bson import ObjectId
 
         try:
-            # Try treat movie_id as ObjectId (real DB id) [web:60]
             oid = ObjectId(movie_id)
             movie = await db["movies"].find_one({"_id": oid})
         except Exception:
@@ -138,7 +174,6 @@ async def movie_detail(request: Request, movie_id: str):
             "views": movie.get("views", "12.4K"),
         }
     else:
-        # fallback dummy data for dummy ids (tamil-1 etc.)
         movie_ctx = {
             "id": movie_id,
             "title": "Sample Movie Title",
@@ -209,4 +244,4 @@ if __name__ == "__main__":
 
     port = int(os.getenv("PORT", "8080"))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
-    
+        
