@@ -298,7 +298,7 @@
         </div>
     </article>
 
-    <!-- Trending now -->
+    <!-- Trending now (no See more) -->
     <article class="card">
         <div class="card-header">
             <div>
@@ -335,14 +335,19 @@
         </div>
     </article>
 
-    <!-- All movies -->
+    <!-- All movies (See more on left) -->
     <article class="card">
         <div class="card-header">
             <div>
-                <div class="card-title">All movies</div>
+                <div class="card-title">
+                    All movies
+                    <a href="/movies/browse"
+                       style="margin-left:8px; font-size:11px; color:#a5b4fc; text-decoration:none;">
+                        See more →
+                    </a>
+                </div>
                 <div class="card-sub">Recently added across all languages.</div>
             </div>
-            <a href="/movies/browse" style="font-size:11px; color:#a5b4fc; text-decoration:none;">See more →</a>
         </div>
 
         <div class="horizontal-scroll">
@@ -560,4 +565,4 @@
 
 </section>
 {% endblock %}
-                            
+            
