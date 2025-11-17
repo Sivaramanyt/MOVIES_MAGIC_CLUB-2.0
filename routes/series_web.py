@@ -6,7 +6,6 @@ from bson import ObjectId
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from datetime import datetime
 
 from db import get_db
 
@@ -31,38 +30,21 @@ def _find_episode(season: dict, episode_number: int) -> Optional[dict]:
     return None
 
 
-def _get_session_id(request: Request) -> str:
-    """Ensure there is a stable session_id for this browser."""
-    sid = request.session.get("session_id")
-    if not sid:
-        import uuid
-
-        sid = uuid.uuid4().hex
-        request.session["session_id"] = sid
-    return sid
-
-
-# ---------- SERIES HOME: HERO + GENRES + TRENDING + CONTINUE ----------
+# ---------- SERIES HOME: HERO + GENRES + TRENDING + ALL ----------
 
 
 @router.get("/series", response_class=HTMLResponse)
 async def series_home(request: Request):
     """
-    Series homepage: latest hero + genres + trending + continue watching.
-
-    - latest_series: latest uploads (for hero + trending)
-    - continue_items: last watched episodes from this session
+    Series homepage: hero slider + genre chips + trending row + all-series row.
+    Uses latest uploads from 'series' collection.
     """
     db = get_db()
-
     latest_series: List[dict] = []
-    continue_items: List[dict] = []
 
     if db is not None:
         col = db["series"]
-
-        # Latest 12 series for hero + trending + continue placeholder
-        cursor = col.find().sort("_id", -1).limit(12)
+        cursor = col.find().sort("_id", -1).limit(20)
         latest_series = [
             {
                 "id": str(doc.get("_id")),
@@ -76,46 +58,12 @@ async def series_home(request: Request):
             async for doc in cursor
         ]
 
-        # Real continue watching from progress collection
-        session_id = _get_session_id(request)
-        prog_col = db["series_progress"]
-        prog_cursor = (
-            prog_col.find({"session_id": session_id})
-            .sort("updated_at", -1)
-            .limit(10)
-        )
-
-        progress_list = [p async for p in prog_cursor]
-
-        # Join progress entries with series documents
-        for p in progress_list:
-            try:
-                sid = ObjectId(p["series_id"])
-                sdoc = await col.find_one({"_id": sid})
-            except Exception:
-                sdoc = None
-
-            if not sdoc:
-                continue
-
-            continue_items.append(
-                {
-                    "series_id": p["series_id"],
-                    "title": sdoc.get("title", "Untitled series"),
-                    "poster_path": sdoc.get("poster_path"),
-                    "season_number": p.get("season_number"),
-                    "episode_number": p.get("episode_number"),
-                    "updated_at": p.get("updated_at"),
-                }
-            )
-
     return templates.TemplateResponse(
         "series_index.html",
         {
             "request": request,
             "latest_series": latest_series,
             "active_genre": "",
-            "continue_items": continue_items,
         },
     )
 
@@ -127,7 +75,7 @@ async def series_home(request: Request):
 async def series_browse(request: Request, genre: str = ""):
     """
     Dedicated page to browse all series, optionally filtered by ?genre=.
-    Uses category field for matching.
+    Matches against 'category' text (case-insensitive).
     """
     db = get_db()
     series_list: List[dict] = []
@@ -225,7 +173,7 @@ async def series_detail(
     )
 
 
-# ---------- EPISODE DETAIL (WATCH / DOWNLOAD + PROGRESS) ----------
+# ---------- EPISODE DETAIL (WATCH / DOWNLOAD) ----------
 
 
 @router.get(
@@ -239,11 +187,13 @@ async def episode_detail(
     episode_number: int,
 ):
     """
-    Single episode page:
+    Single episode page: uses series poster + meta, and shows
+    Watch / Download buttons for that episode.
 
-    - Uses series poster + meta
-    - Shows Watch / Download
-    - Records 'continue watching' entry per session
+    Multi-audio:
+      - admin stores languages[] in series document
+      - primary language is series.language
+      - here we build series.audio string from languages[]
     """
     db = get_db()
     series = None
@@ -298,25 +248,6 @@ async def episode_detail(
         "year": season.get("year"),
     }
 
-    # ----- record progress for Continue watching -----
-    if db is not None:
-        session_id = _get_session_id(request)
-        prog_col = db["series_progress"]
-        await prog_col.update_one(
-            {
-                "session_id": session_id,
-                "series_id": str(series.get("_id")),
-            },
-            {
-                "$set": {
-                    "season_number": int(season_number),
-                    "episode_number": int(episode_number),
-                    "updated_at": datetime.utcnow(),
-                }
-            },
-            upsert=True,
-        )
-
     return templates.TemplateResponse(
         "episode_detail.html",
         {
@@ -325,4 +256,5 @@ async def episode_detail(
             "season": season_ctx,
             "episode": episode_ctx,
         },
-)
+        )
+    
