@@ -15,27 +15,28 @@ templates = Jinja2Templates(directory="templates")
 
 # ---------- SERIES HOME (LIKE MOVIE HOME) ----------
 
-
 @router.get("/series", response_class=HTMLResponse)
 async def series_home(request: Request):
     """
-    Series homepage: hero slider + language rows.
-    Uses 'series' collection in MongoDB.
+    Series homepage: hero slider + genre + trending + continue watching.
+    Optional query param ?genre=Action will filter by category.
     """
     db = get_db()
 
     latest_series: List[dict] = []
-    tamil_series: List[dict] = []
-    telugu_series: List[dict] = []
-    hindi_series: List[dict] = []
-    malayalam_series: List[dict] = []
-    kannada_series: List[dict] = []
+
+    # read genre filter from query string
+    genre = request.query_params.get("genre", "").strip()
 
     if db is not None:
         series_col = db["series"]
 
-        # Latest 5 series for hero
-        cursor = series_col.find().sort("_id", -1).limit(5)
+        query = {}
+        if genre:
+            # match category containing the genre text (case-insensitive)
+            query["category"] = {"$regex": genre, "$options": "i"}
+
+        cursor = series_col.find(query).sort("_id", -1).limit(12)
         latest_series = [
             {
                 "id": str(doc.get("_id")),
@@ -49,44 +50,15 @@ async def series_home(request: Request):
             async for doc in cursor
         ]
 
-        async def fetch_by_language(lang: str, limit: int = 12):
-            cur = (
-                series_col
-                .find({"language": lang})
-                .sort("_id", -1)
-                .limit(limit)
-            )
-            return [
-                {
-                    "id": str(d.get("_id")),
-                    "title": d.get("title", "Untitled series"),
-                    "year": d.get("year"),
-                    "language": d.get("language"),
-                    "quality": d.get("quality", "HD"),
-                    "poster_path": d.get("poster_path"),
-                }
-                async for d in cur
-            ]
-
-        tamil_series = await fetch_by_language("Tamil")
-        telugu_series = await fetch_by_language("Telugu")
-        hindi_series = await fetch_by_language("Hindi")
-        malayalam_series = await fetch_by_language("Malayalam")
-        kannada_series = await fetch_by_language("Kannada")
-
     return templates.TemplateResponse(
         "series_index.html",
         {
             "request": request,
             "latest_series": latest_series,
-            "tamil_series": tamil_series,
-            "telugu_series": telugu_series,
-            "hindi_series": hindi_series,
-            "malayalam_series": malayalam_series,
-            "kannada_series": kannada_series,
+            "active_genre": genre,
         },
     )
-
+    
 
 # ---------- HELPERS ----------
 
