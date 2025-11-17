@@ -2,373 +2,399 @@
 
 {% block content %}
 <style>
-    /* re-use same styles as index.html hero + cards */
-    /* you can even copy the whole <style> block from index.html if you want identical look */
-    .hero-wrapper {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(236, 72, 153, 0.14));
-        border-radius: var(--radius-xl);
-        padding: 14px 14px 16px;
-        border: 1px solid var(--glass-border);
-        box-shadow: 0 16px 35px rgba(15, 23, 42, 0.8);
+    .page-shell {
+        margin-top: 12px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        margin-bottom: 18px;
-    }
-
-    .hero-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        gap: 16px;
         font-size: 13px;
     }
 
-    .hero-title {
+    .card {
+        background: rgba(15, 23, 42, 0.96);
+        border-radius: 24px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        padding: 14px 14px 16px;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 8px;
+    }
+
+    .card-title {
+        font-size: 15px;
         font-weight: 600;
-        font-size: 16px;
     }
 
-    .hero-sub {
+    .card-sub {
+        font-size: 11px;
         color: var(--text-muted);
-        font-size: 12px;
     }
 
-    .hero-slider {
+    /* HERO SLIDER */
+
+    .hero-shell {
         position: relative;
         overflow: hidden;
-        height: 180px;
-        border-radius: 20px;
+        border-radius: 24px;
+        background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.25), rgba(15, 23, 42, 0.98));
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        padding: 14px 14px 16px;
     }
 
-    .hero-track {
-        display: flex;
-        width: 500%;
-        height: 100%;
-        transition: transform 0.7s ease;
+    .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
     }
 
-    .hero-card {
-        flex: 0 0 100%;
-        padding: 14px 16px;
-        display: flex;
-        align-items: flex-end;
-        border-radius: 20px;
-        color: #f9fafb;
-        position: relative;
-        overflow: hidden;
-        background: #020617;
-    }
-
-    .hero-bg {
-        position: absolute;
-        inset: 0;
-        background-size: cover;
-        background-position: center;
-        filter: blur(18px);
-        transform: scale(1.12);
-        opacity: 0.85;
-    }
-
-    .hero-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-            120deg,
-            rgba(37, 99, 235, 0.32),
-            rgba(15, 23, 42, 0.85)
-        );
-    }
-
-    .hero-content {
-        position: relative;
-        z-index: 2;
-        max-width: 70%;
-    }
-
-    .hero-inner {
-        display: flex;
-        align-items: flex-end;
+    .hero-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
         gap: 12px;
+        align-items: center;
     }
 
-    .hero-thumb {
-        width: 86px;
-        height: 120px;
-        border-radius: 16px;
+    .hero-poster {
+        border-radius: 22px;
         overflow: hidden;
         background: radial-gradient(circle at top, #1d4ed8, #020617);
-        flex-shrink: 0;
+        min-height: 180px;
     }
 
-    .hero-thumb img {
+    .hero-poster img {
         width: 100%;
         height: 100%;
         object-fit: cover;
         display: block;
     }
 
-    .hero-text {
+    .hero-main {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
     }
 
-    .hero-movie-title {
-        font-size: 18px;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-        margin-bottom: 4px;
+    .hero-title {
+        font-size: 20px;
+        font-weight: 650;
     }
 
     .hero-meta {
         font-size: 12px;
         color: var(--text-muted);
-        margin-bottom: 10px;
     }
 
-    .hero-btn {
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+    }
+
+    .btn-hero-primary,
+    .btn-hero-secondary {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 7px 14px;
-        border-radius: 999px;
-        border: none;
-        background: #0f172a;
-        color: #f9fafb;
-        font-size: 12px;
-        text-decoration: none;
-        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.9);
-    }
-
-    .hero-indicators {
-        display: flex;
         justify-content: center;
         gap: 6px;
-        margin-top: 8px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 12px;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .btn-hero-primary {
+        background: linear-gradient(135deg, #f97316, #ec4899);
+        color: #020617;
+        box-shadow: 0 12px 30px rgba(248, 113, 113, 0.6);
+    }
+
+    .btn-hero-secondary {
+        background: #020617;
+        color: #e5e7eb;
+        border: 1px solid rgba(148, 163, 184, 0.8);
+    }
+
+    .hero-dots {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        margin-top: 10px;
     }
 
     .hero-dot {
-        width: 6px;
-        height: 6px;
+        width: 16px;
+        height: 3px;
         border-radius: 999px;
         background: rgba(148, 163, 184, 0.6);
     }
 
     .hero-dot.active {
-        width: 14px;
         background: #f97316;
     }
 
-    .section-header {
+    /* GENRE CHIPS */
+
+    .genre-card {
         display: flex;
-        justify-content: space_between;
-        align-items: baseline;
-        margin: 18px 0 8px;
+        flex-direction: column;
+        gap: 8px;
     }
 
-    .section-title {
-        font-size: 15px;
-        font-weight: 600;
+    .genre-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
-    .section-sub {
+    .genre-chip {
+        padding: 6px 12px;
+        border-radius: 999px;
         font-size: 11px;
-        color: var(--text-muted);
+        border: 1px solid rgba(75, 85, 99, 0.9);
+        background: #020617;
+        color: #e5e7eb;
     }
 
-    .see-all {
-        font-size: 11px;
-        color: #a5b4fc;
-        text-decoration: none;
-    }
+    /* TRENDING & CONTINUE */
 
-    .h-scroll {
+    .horizontal-scroll {
         display: flex;
         gap: 10px;
         overflow-x: auto;
         padding-bottom: 4px;
-        scroll-snap-type: x mandatory;
+        scrollbar-width: thin;
     }
 
-    .movie-card {
-        scroll-snap-align: start;
-        flex: 0 0 135px;
-        background: radial-gradient(circle at top, #1d4ed8, #020617);
+    .tile {
+        flex: 0 0 150px;
         border-radius: 18px;
-        border: 1px solid rgba(55, 65, 81, 0.85);
-        padding: 8px;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        text-decoration: none;
-        color: inherit;
+        background: radial-gradient(circle at top, #1e293b, #020617);
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        padding: 8px 8px 10px;
     }
 
-    .movie-poster {
+    .tile-poster {
         width: 100%;
-        height: 150px;
         border-radius: 14px;
-        background: radial-gradient(circle at top, #1d4ed8, #020617);
         overflow: hidden;
-        background-size: cover;
-        background-position: center;
+        background: radial-gradient(circle at top, #1d4ed8, #020617);
+        margin-bottom: 6px;
     }
 
-    .movie-title {
+    .tile-poster img {
+        width: 100%;
+        height: 110px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .tile-title {
         font-size: 12px;
         font-weight: 500;
         margin-bottom: 2px;
     }
 
-    .movie-meta {
-        font-size: 10px;
+    .tile-meta {
+        font-size: 11px;
         color: var(--text-muted);
     }
 
-    @media (min-width: 768px) {
-        .hero-slider {
-            height: 210px;
-        }
+    .progress-bar {
+        width: 100%;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(31, 41, 55, 0.9);
+        overflow: hidden;
+        margin-top: 4px;
+    }
 
-        .movie-card {
-            flex: 0 0 150px;
-        }
+    .progress-inner {
+        height: 100%;
+        width: 45%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #22c55e, #a3e635);
+    }
 
-        .movie-poster {
-            height: 170px;
+    @media (max-width: 768px) {
+        .hero-item {
+            grid-template-columns: minmax(0, 1fr);
         }
     }
 </style>
 
-<section class="hero-wrapper">
-    <div class="hero-header">
-        <div>
-            <div class="hero-title">Latest web series</div>
-            <div class="hero-sub">Fresh series added to Movies Magic Club</div>
-        </div>
-        <div class="hero-sub">Auto-sliding preview · last 5 uploads</div>
-    </div>
+<section class="page-shell">
 
-    <div class="hero-slider" id="hero-slider">
-        <div class="hero-track" id="hero-track">
+    <!-- HERO: Latest web series -->
+    <article class="hero-shell">
+        <div class="card-header" style="margin-bottom:10px;">
+            <div>
+                <div class="card-title">Latest web series</div>
+                <div class="card-sub">
+                    Fresh series added to Movies Magic Club · auto-sliding preview · last 5 uploads
+                </div>
+            </div>
+        </div>
+
+        {% if latest_series and latest_series|length > 0 %}
+            {% set first = latest_series[0] %}
+            <div class="hero-grid">
+                <div class="hero-item">
+                    <div class="hero-poster">
+                        {% if first.poster_path %}
+                            <img src="{{ url_for('static', path=first.poster_path) }}"
+                                 alt="{{ first.title }} poster">
+                        {% endif %}
+                    </div>
+                    <div class="hero-main">
+                        <div class="hero-title">
+                            {{ first.title }}{% if first.year %} · S1E01{% endif %}
+                        </div>
+                        <div class="hero-meta">
+                            {{ first.year or "" }}{% if first.quality %} · {{ first.quality }}{% endif %}{% if first.category %} · {{ first.category }}{% endif %}
+                        </div>
+                        <div class="hero-actions">
+                            <a href="/series/{{ first.id }}"
+                               class="btn-hero-primary">
+                                ▶ View seasons
+                            </a>
+                            <a href="/series"
+                               class="btn-hero-secondary">
+                                Browse all web series
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-dots">
+                {% set count = latest_series|length if latest_series|length < 5 else 5 %}
+                {% for i in range(count) %}
+                    <div class="hero-dot {% if i == 0 %}active{% endif %}"></div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="hero-grid">
+                <div class="hero-item">
+                    <div class="hero-poster"></div>
+                    <div class="hero-main">
+                        <div class="hero-title">Sample Series · S1E01</div>
+                        <div class="hero-meta">2024 · HD · Web series</div>
+                        <div class="hero-actions">
+                            <a href="/series" class="btn-hero-primary">▶ View seasons</a>
+                            <a href="/series" class="btn-hero-secondary">Browse all web series</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </article>
+
+    <!-- GENRE ROW (no language rows) -->
+    <article class="card genre-card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Browse by genre</div>
+                <div class="card-sub">Find the perfect web series mood for today.</div>
+            </div>
+        </div>
+        <div class="genre-row">
+            <span class="genre-chip">Action</span>
+            <span class="genre-chip">Comedy</span>
+            <span class="genre-chip">Drama</span>
+            <span class="genre-chip">Thriller</span>
+            <span class="genre-chip">Fantasy</span>
+            <span class="genre-chip">Sci‑Fi</span>
+            <span class="genre-chip">Romance</span>
+            <span class="genre-chip">Crime</span>
+        </div>
+    </article>
+
+    <!-- TRENDING WEB SERIES -->
+    <article class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Trending web series</div>
+                <div class="card-sub">Popular across Movies Magic Club this week.</div>
+            </div>
+        </div>
+
+        <div class="horizontal-scroll">
             {% if latest_series and latest_series|length > 0 %}
                 {% for s in latest_series %}
-                    <div class="hero-card">
-                        <div class="hero-bg"
-                             {% if s.poster_path %}
-                             style="background-image: url('{{ url_for('static', path=s.poster_path) }}');"
-                             {% endif %}>
-                        </div>
-                        <div class="hero-overlay"></div>
-
-                        <div class="hero-content hero-inner">
-                            <div class="hero-thumb">
-                                {% if s.poster_path %}
-                                    <img src="{{ url_for('static', path=s.poster_path) }}"
-                                         alt="{{ s.title }} poster">
-                                {% endif %}
-                            </div>
-                            <div class="hero-text">
-                                <div class="hero-movie-title">{{ s.title }}</div>
-                                <div class="hero-meta">
-                                    {{ s.year or "" }} · {{ s.quality or "HD" }}{% if s.category %} · {{ s.category }}{% endif %}
-                                </div>
-                                <a href="/series/{{ s.id }}" class="hero-btn">
-                                    ▶ View seasons
-                                </a>
-                            </div>
-                        </div>
+                <div class="tile">
+                    <div class="tile-poster">
+                        {% if s.poster_path %}
+                            <img src="{{ url_for('static', path=s.poster_path) }}"
+                                 alt="{{ s.title }} poster">
+                        {% endif %}
                     </div>
+                    <div class="tile-title">{{ s.title }}</div>
+                    <div class="tile-meta">
+                        {{ s.year or "" }}{% if s.quality %} · {{ s.quality }}{% endif %}{% if s.category %} · {{ s.category }}{% endif %}
+                    </div>
+                </div>
                 {% endfor %}
             {% else %}
-                {% for i in range(5) %}
-                    <div class="hero-card">
-                        <div class="hero-bg"></div>
-                        <div class="hero-overlay"></div>
-                        <div class="hero-content hero-inner">
-                            <div class="hero-thumb"></div>
-                            <div class="hero-text">
-                                <div class="hero-movie-title">Sample Series {{ i + 1 }}</div>
-                                <div class="hero-meta">2024 · HD · Web series</div>
-                                <a href="#" class="hero-btn">
-                                    ▶ View seasons
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                {% for i in range(8) %}
+                <div class="tile">
+                    <div class="tile-poster"></div>
+                    <div class="tile-title">Trending series {{ i + 1 }}</div>
+                    <div class="tile-meta">HD · 2024 · Web series</div>
+                </div>
                 {% endfor %}
             {% endif %}
         </div>
-    </div>
+    </article>
 
-    <div class="hero-indicators" id="hero-dots">
-        {% set count = latest_series|length if latest_series and latest_series|length > 0 else 5 %}
-        {% for i in range(count) %}
-            <div class="hero-dot {% if i == 0 %}active{% endif %}"></div>
-        {% endfor %}
-    </div>
-</section>
-
-<section>
-    <div class="section-header">
-        <div>
-            <div class="section-title">Tamil web series</div>
-            <div class="section-sub">Hand-picked Tamil originals</div>
+    <!-- CONTINUE WATCHING -->
+    <article class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Continue watching</div>
+                <div class="card-sub">Pick up right where you left off.</div>
+            </div>
         </div>
-        <!-- optional: see-all later -->
-    </div>
-    <div class="h-scroll">
-        {% if tamil_series and tamil_series|length > 0 %}
-            {% for s in tamil_series %}
-            <a href="/series/{{ s.id }}" class="movie-card">
-                <div class="movie-poster"
-                     {% if s.poster_path %}
-                     style="
-                        background-image: url('{{ url_for('static', path=s.poster_path) }}');
-                        background-size: cover;
-                        background-position: center;
-                     "
-                     {% endif %}>
+
+        <div class="horizontal-scroll">
+            {% if latest_series and latest_series|length > 0 %}
+                {% for s in latest_series %}
+                <div class="tile">
+                    <div class="tile-poster">
+                        {% if s.poster_path %}
+                            <img src="{{ url_for('static', path=s.poster_path) }}"
+                                 alt="{{ s.title }} poster">
+                        {% endif %}
+                    </div>
+                    <div class="tile-title">{{ s.title }}</div>
+                    <div class="tile-meta">Progress · 45%</div>
+                    <div class="progress-bar">
+                        <div class="progress-inner"></div>
+                    </div>
                 </div>
-                <div class="movie-title">{{ s.title }}</div>
-                <div class="movie-meta">
-                    {{ s.quality or "HD" }} · {{ s.year or "" }} · {{ s.language or "Tamil" }}
+                {% endfor %}
+            {% else %}
+                {% for i in range(6) %}
+                <div class="tile">
+                    <div class="tile-poster"></div>
+                    <div class="tile-title">Series {{ i + 1 }}</div>
+                    <div class="tile-meta">Progress · 45%</div>
+                    <div class="progress-bar">
+                        <div class="progress-inner"></div>
+                    </div>
                 </div>
-            </a>
-            {% endfor %}
-        {% else %}
-            {% for i in range(8) %}
-            <article class="movie-card">
-                <div class="movie-poster"></div>
-                <div class="movie-title">Tamil Series {{ i + 1 }}</div>
-                <div class="movie-meta">HD · 2023 · Tamil</div>
-            </article>
-            {% endfor %}
-        {% endif %}
-    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </article>
+
 </section>
-
-<!-- You can duplicate same pattern for telugu_series, hindi_series, etc. -->
-
-<script>
-    (function () {
-        const track = document.getElementById("hero-track");
-        const dots = document.querySelectorAll("#hero-dots .hero-dot");
-        if (!track || dots.length === 0) return;
-
-        let index = 0;
-        const total = dots.length;
-
-        function updateHero() {
-            track.style.transform = "translateX(" + (-100 * index) + "%)";
-            dots.forEach((d, i) => d.classList.toggle("active", i === index));
-        }
-
-        setInterval(function () {
-            index = (index + 1) % total;
-            updateHero();
-        }, 4000);
-    })();
-</script>
-
 {% endblock %}
+            
