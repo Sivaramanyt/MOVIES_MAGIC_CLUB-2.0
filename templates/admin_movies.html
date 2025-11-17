@@ -148,20 +148,63 @@
         background: rgba(15, 23, 42, 0.85);
     }
 
-    .btn-small-danger {
+    .btn-small-danger,
+    .btn-small-secondary {
         padding: 4px 8px;
         border-radius: 999px;
-        border: 1px solid rgba(248, 113, 113, 0.8);
-        background: rgba(127, 29, 29, 0.5);
-        color: #fecaca;
         font-size: 11px;
         cursor: pointer;
+        border: 1px solid transparent;
+        background: transparent;
+    }
+
+    .btn-small-danger {
+        border-color: rgba(248, 113, 113, 0.8);
+        background: rgba(127, 29, 29, 0.5);
+        color: #fecaca;
+    }
+
+    .btn-small-secondary {
+        border-color: rgba(59, 130, 246, 0.8);
+        background: rgba(30, 64, 175, 0.5);
+        color: #bfdbfe;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
 
     .message-bar {
         margin-top: 6px;
         font-size: 11px;
         color: #bbf7d0;
+    }
+
+    .search-inline-form {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .search-inline-input {
+        flex: 1;
+        border-radius: 999px;
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        background: #020617;
+        color: #e5e7eb;
+        font-size: 11px;
+        padding: 6px 10px;
+        outline: none;
+    }
+
+    .search-inline-btn {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: none;
+        font-size: 11px;
+        background: rgba(51, 65, 85, 0.9);
+        color: #e5e7eb;
+        cursor: pointer;
     }
 
     @media (max-width: 768px) {
@@ -180,7 +223,7 @@
     <article class="card">
         <div class="card-header">
             <div>
-                <div class="card-title">Library overview</div>
+                <div class="card-title">Movies overview</div>
                 <div class="card-sub">
                     Overview of Movies Magic Club library and quick actions.
                 </div>
@@ -286,13 +329,23 @@
         </form>
     </article>
 
-    <!-- RIGHT: Movies list / delete -->
+    <!-- RIGHT: Movies list / search / delete -->
     <article class="card">
         <div class="card-header">
             <div>
                 <div class="card-title">Latest movies</div>
-                <div class="card-sub">Recently added movies (max 30)</div>
+                <div class="card-sub">Recently added movies (max 50)</div>
             </div>
+            <form class="search-inline-form" method="get" action="/admin/movies">
+                <input
+                    type="text"
+                    name="q"
+                    class="search-inline-input"
+                    placeholder="Search by title..."
+                    value="{{ q or '' }}"
+                >
+                <button type="submit" class="search-inline-btn">Search</button>
+            </form>
         </div>
 
         <table class="movies-table">
@@ -313,6 +366,7 @@
                     <td>{{ m.language or "" }}</td>
                     <td>{{ m.quality or "" }}</td>
                     <td>
+                        <a href="/admin/movies/{{ m.id }}/edit" class="btn-small-secondary">Edit</a>
                         <form method="post" action="/admin/movies/{{ m.id }}/delete" style="display:inline;">
                             <button type="submit" class="btn-small-danger">Delete</button>
                         </form>
@@ -324,4 +378,4 @@
     </article>
 </section>
 {% endblock %}
-              
+            
