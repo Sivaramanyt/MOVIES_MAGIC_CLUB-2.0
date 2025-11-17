@@ -54,15 +54,29 @@
         color: #f9fafb;
         position: relative;
         overflow: hidden;
-        background-image: linear-gradient(120deg, #1d4ed8, #ec4899);
-        background-size: cover;
-        background-position: center;
+        background: #020617;
     }
 
+    /* Blurred poster background */
+    .hero-bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        filter: blur(18px);
+        transform: scale(1.12);
+        opacity: 0.85;
+    }
+
+    /* Blue / purple overlay on top */
     .hero-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(120deg, rgba(15, 23, 42, 0.15), rgba(15, 23, 42, 0.75));
+        background: linear-gradient(
+            120deg,
+            rgba(37, 99, 235, 0.32),
+            rgba(15, 23, 42, 0.85)
+        );
     }
 
     .hero-content {
@@ -71,7 +85,6 @@
         max-width: 70%;
     }
 
-    /* Poster + text inside hero slide */
     .hero-inner {
         display: flex;
         align-items: flex-end;
@@ -161,6 +174,7 @@
         border: 1px solid rgba(55, 65, 81, 0.9);
         background: #020617;
         color: #e5e7eb;
+        text-decoration: none;
     }
 
     .chip.active {
@@ -272,16 +286,12 @@
         <div class="hero-track" id="hero-track">
             {% if latest_movies and latest_movies|length > 0 %}
                 {% for m in latest_movies %}
-                    <div class="hero-card"
-                         {% if m.poster_path %}
-                         style="
-                            background-image:
-                                linear-gradient(120deg, rgba(15,23,42,0.78), rgba(15,23,42,0.96)),
-                                url('{{ url_for('static', path=m.poster_path) }}');
-                            background-size: cover;
-                            background-position: center;
-                         "
-                         {% endif %}>
+                    <div class="hero-card">
+                        <div class="hero-bg"
+                             {% if m.poster_path %}
+                             style="background-image: url('{{ url_for('static', path=m.poster_path) }}');"
+                             {% endif %}>
+                        </div>
                         <div class="hero-overlay"></div>
 
                         <div class="hero-content hero-inner">
@@ -307,6 +317,7 @@
             {% else %}
                 {% for i in range(5) %}
                     <div class="hero-card">
+                        <div class="hero-bg"></div>
                         <div class="hero-overlay"></div>
                         <div class="hero-content hero-inner">
                             <div class="hero-thumb"></div>
@@ -333,8 +344,8 @@
 </section>
 
 <div class="chip-row">
-    <span class="chip active">Movies</span>
-    <span class="chip">Series</span>
+    <a href="#tamil-section" class="chip active">Movies</a>
+    <a href="javascript:void(0)" class="chip">Series</a>
     <span class="chip">Action</span>
     <span class="chip">Comedy</span>
     <span class="chip">Drama</span>
@@ -343,13 +354,13 @@
     <span class="chip">Romance</span>
 </div>
 
-<section>
+<section id="trending-section">
     <div class="section-header">
         <div>
             <div class="section-title">Trending now</div>
             <div class="section-sub">Popular across Movies Magic Club</div>
         </div>
-        <a href="/trending" class="see-all">See all</a>
+        <a href="#trending-section" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% for i in range(8) %}
@@ -362,13 +373,13 @@
     </div>
 </section>
 
-<section>
+<section id="continue-section">
     <div class="section-header">
         <div>
             <div class="section-title">Continue watching</div>
             <div class="section-sub">Pick up right where you left off</div>
         </div>
-        <a href="/continue" class="see-all">See all</a>
+        <a href="#continue-section" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% for i in range(6) %}
@@ -381,13 +392,13 @@
     </div>
 </section>
 
-<section>
+<section id="tamil-section">
     <div class="section-header">
         <div>
             <div class="section-title">Tamil movies</div>
             <div class="section-sub">Hand-picked Tamil releases</div>
         </div>
-        <a href="/language/tamil" class="see-all">See all</a>
+        <a href="#tamil-section" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if tamil_movies and tamil_movies|length > 0 %}
@@ -420,13 +431,13 @@
     </div>
 </section>
 
-<section>
+<section id="telugu-section">
     <div class="section-header">
         <div>
             <div class="section-title">Telugu movies</div>
             <div class="section-sub">Top picks in Telugu</div>
         </div>
-        <a href="/language/telugu" class="see-all">See all</a>
+        <a href="#telugu-section" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if telugu_movies and telugu_movies|length > 0 %}
@@ -459,13 +470,13 @@
     </div>
 </section>
 
-<section>
+<section id="hindi-section">
     <div class="section-header">
         <div>
             <div class="section-title">Hindi movies</div>
             <div class="section-sub">Bollywood & beyond</div>
         </div>
-        <a href="/language/hindi" class="see-all">See all</a>
+        <a href="#hindi-section" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if hindi_movies and hindi_movies|length > 0 %}
@@ -498,13 +509,13 @@
     </div>
 </section>
 
-<section>
+<section id="malayalam-section">
     <div class="section-header">
         <div>
             <div class="section-title">Malayalam movies</div>
             <div class="section-sub">Critically acclaimed picks</div>
         </div>
-        <a href="/language/malayalam" class="see-all">See all</a>
+        <a href="#malayalam-section" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if malayalam_movies and malayalam_movies|length > 0 %}
@@ -537,13 +548,13 @@
     </div>
 </section>
 
-<section>
+<section id="kannada-section">
     <div class="section-header">
         <div>
             <div class="section-title">Kannada movies</div>
             <div class="section-sub">Latest from Sandalwood</div>
         </div>
-        <a href="/language/kannada" class="see-all">See all</a>
+        <a href="#kannada-section" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if kannada_movies and kannada_movies|length > 0 %}
@@ -598,4 +609,4 @@
 </script>
 
 {% endblock %}
-        
+    
