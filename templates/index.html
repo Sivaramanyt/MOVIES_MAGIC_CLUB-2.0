@@ -344,14 +344,14 @@
 </section>
 
 <div class="chip-row">
-    <a href="#tamil-section" class="chip active">Movies</a>
-    <a href="javascript:void(0)" class="chip">Series</a>
-    <span class="chip">Action</span>
-    <span class="chip">Comedy</span>
-    <span class="chip">Drama</span>
-    <span class="chip">Horror</span>
-    <span class="chip">Crime</span>
-    <span class="chip">Romance</span>
+    <a href="/language/tamil" class="chip active">Movies</a>
+    <span class="chip">Series</span>
+    <a href="/genre/action" class="chip">Action</a>
+    <a href="/genre/comedy" class="chip">Comedy</a>
+    <a href="/genre/drama" class="chip">Drama</a>
+    <a href="/genre/horror" class="chip">Horror</a>
+    <a href="/genre/crime" class="chip">Crime</a>
+    <a href="/genre/romance" class="chip">Romance</a>
 </div>
 
 <section id="trending-section">
@@ -360,7 +360,6 @@
             <div class="section-title">Trending now</div>
             <div class="section-sub">Popular across Movies Magic Club</div>
         </div>
-        <a href="#trending-section" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% for i in range(8) %}
@@ -379,7 +378,6 @@
             <div class="section-title">Continue watching</div>
             <div class="section-sub">Pick up right where you left off</div>
         </div>
-        <a href="#continue-section" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% for i in range(6) %}
@@ -398,7 +396,7 @@
             <div class="section-title">Tamil movies</div>
             <div class="section-sub">Hand-picked Tamil releases</div>
         </div>
-        <a href="#tamil-section" class="see-all">See all</a>
+        <a href="/language/tamil" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if tamil_movies and tamil_movies|length > 0 %}
@@ -437,7 +435,7 @@
             <div class="section-title">Telugu movies</div>
             <div class="section-sub">Top picks in Telugu</div>
         </div>
-        <a href="#telugu-section" class="see-all">See all</a>
+        <a href="/language/telugu" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if telugu_movies and telugu_movies|length > 0 %}
@@ -476,7 +474,7 @@
             <div class="section-title">Hindi movies</div>
             <div class="section-sub">Bollywood & beyond</div>
         </div>
-        <a href="#hindi-section" class="see-all">See all</a>
+        <a href="/language/hindi" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if hindi_movies and hindi_movies|length > 0 %}
@@ -515,7 +513,7 @@
             <div class="section-title">Malayalam movies</div>
             <div class="section-sub">Critically acclaimed picks</div>
         </div>
-        <a href="#malayalam-section" class="see-all">See all</a>
+        <a href="/language/malayalam" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if malayalam_movies and malayalam_movies|length > 0 %}
@@ -554,7 +552,7 @@
             <div class="section-title">Kannada movies</div>
             <div class="section-sub">Latest from Sandalwood</div>
         </div>
-        <a href="#kannada-section" class="see-all">See all</a>
+        <a href="/language/kannada" class="see-all">See all</a>
     </div>
     <div class="h-scroll">
         {% if kannada_movies and kannada_movies|length > 0 %}
@@ -609,4 +607,4 @@
 </script>
 
 {% endblock %}
-    
+                
