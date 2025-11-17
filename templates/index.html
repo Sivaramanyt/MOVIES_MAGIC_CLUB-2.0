@@ -342,12 +342,30 @@
 </section>
 
 <div class="chip-row">
-    <a href="/genre/action" class="chip">Action</a>
-    <a href="/genre/comedy" class="chip">Comedy</a>
-    <a href="/genre/drama" class="chip">Drama</a>
-    <a href="/genre/horror" class="chip">Horror</a>
-    <a href="/genre/crime" class="chip">Crime</a>
-    <a href="/genre/romance" class="chip">Romance</a>
+    <a href="/genre/action"
+       class="pill {% if 'genre/action' in request.url.path %}active{% endif %}">
+        Action
+    </a>
+    <a href="/genre/comedy"
+       class="pill {% if 'genre/comedy' in request.url.path %}active{% endif %}">
+        Comedy
+    </a>
+    <a href="/genre/drama"
+       class="pill {% if 'genre/drama' in request.url.path %}active{% endif %}">
+        Drama
+    </a>
+    <a href="/genre/horror"
+       class="pill {% if 'genre/horror' in request.url.path %}active{% endif %}">
+        Horror
+    </a>
+    <a href="/genre/crime"
+       class="pill {% if 'genre/crime' in request.url.path %}active{% endif %}">
+        Crime
+    </a>
+    <a href="/genre/romance"
+       class="pill {% if 'genre/romance' in request.url.path %}active{% endif %}">
+        Romance
+    </a>
 </div>
 
 <section id="trending-section">
