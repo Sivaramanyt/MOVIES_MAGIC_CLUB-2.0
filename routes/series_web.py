@@ -19,7 +19,7 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/series", response_class=HTMLResponse)
 async def series_home(request: Request):
     """
-    Series homepage: hero slider + language rows (Tamil/Telugu etc).
+    Series homepage: hero slider + language rows.
     Uses 'series' collection in MongoDB.
     """
     db = get_db()
@@ -40,7 +40,7 @@ async def series_home(request: Request):
             {
                 "id": str(doc.get("_id")),
                 "title": doc.get("title", "Untitled series"),
-                "year": doc.get("year"),  # optional
+                "year": doc.get("year"),
                 "language": doc.get("language"),
                 "quality": doc.get("quality", "HD"),
                 "category": doc.get("category"),
@@ -88,7 +88,7 @@ async def series_home(request: Request):
     )
 
 
-# ---------- SERIES DETAIL (SEASONS + EPISODES) ----------
+# ---------- HELPERS ----------
 
 
 def _find_season(series: dict, season_number: int) -> Optional[dict]:
@@ -103,6 +103,9 @@ def _find_episode(season: dict, episode_number: int) -> Optional[dict]:
         if int(e.get("number", 0)) == episode_number:
             return e
     return None
+
+
+# ---------- SERIES DETAIL (SEASONS + EPISODES) ----------
 
 
 @router.get("/series/{series_id}", response_class=HTMLResponse)
@@ -126,7 +129,6 @@ async def series_detail(
             series = None
 
     if not series:
-        # simple 404-like message
         return templates.TemplateResponse(
             "series_detail.html",
             {
@@ -142,7 +144,6 @@ async def series_detail(
         selected_season = None
         episodes = []
     else:
-        # pick requested season or first
         selected_season = _find_season(series, season) or seasons[0]
         episodes = selected_season.get("episodes", [])
 
@@ -180,6 +181,15 @@ async def episode_detail(
     season_number: int,
     episode_number: int,
 ):
+    """
+    Single episode page: reuses series poster + meta, and shows
+    Watch / Download buttons for that episode.
+
+    Multi-audio:
+      - admin stores languages[] in series document
+      - primary language is series.language
+      - here we build series.audio string from languages[]
+    """
     db = get_db()
     series = None
 
@@ -205,19 +215,24 @@ async def episode_detail(
             {"request": request, "series": None, "season": None, "episode": None},
         )
 
+    # multi-audio text from languages[]
+    languages = series.get("languages") or []
+    audio_text = ", ".join(languages) if languages else series.get("language", "Tamil")
+
     series_ctx = {
         "id": str(series.get("_id")),
         "title": series.get("title", "Untitled series"),
-        "language": series.get("language", "Tamil"),
+        "language": series.get("language", "Tamil"),  # primary UI language
         "category": series.get("category", ""),
         "poster_path": series.get("poster_path"),
+        "audio": audio_text,
+        "languages": languages,
     }
 
     episode_ctx = {
         "number": episode.get("number"),
         "title": episode.get("title", ""),
         "description": episode.get("description", ""),
-        "duration": episode.get("duration", ""),
         "watch_url": episode.get("watch_url", ""),
         "download_url": episode.get("download_url", ""),
     }
@@ -236,4 +251,5 @@ async def episode_detail(
             "season": season_ctx,
             "episode": episode_ctx,
         },
-    )
+)
+            
