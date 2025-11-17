@@ -273,7 +273,7 @@
                                class="btn-hero-primary">
                                 ▶ View seasons
                             </a>
-                            <a href="/series"
+                            <a href="/series/browse"
                                class="btn-hero-secondary">
                                 Browse all web series
                             </a>
@@ -297,7 +297,7 @@
                         <div class="hero-meta">2024 · HD · Web series</div>
                         <div class="hero-actions">
                             <a href="/series" class="btn-hero-primary">▶ View seasons</a>
-                            <a href="/series" class="btn-hero-secondary">Browse all web series</a>
+                            <a href="/series/browse" class="btn-hero-secondary">Browse all web series</a>
                         </div>
                     </div>
                 </div>
@@ -311,22 +311,19 @@
             <div>
                 <div class="card-title">Browse by genre</div>
                 <div class="card-sub">
-                    Find the perfect web series mood for today.
-                    {% if active_genre %}
-                        Currently showing: {{ active_genre }}.
-                    {% endif %}
+                    Tap a genre to see all matching web series.
                 </div>
             </div>
         </div>
         <div class="genre-row">
-            <a href="/series?genre=Action" class="genre-chip">Action</a>
-            <a href="/series?genre=Comedy" class="genre-chip">Comedy</a>
-            <a href="/series?genre=Drama" class="genre-chip">Drama</a>
-            <a href="/series?genre=Thriller" class="genre-chip">Thriller</a>
-            <a href="/series?genre=Fantasy" class="genre-chip">Fantasy</a>
-            <a href="/series?genre=Sci-Fi" class="genre-chip">Sci‑Fi</a>
-            <a href="/series?genre=Romance" class="genre-chip">Romance</a>
-            <a href="/series?genre=Crime" class="genre-chip">Crime</a>
+            <a href="/series/browse?genre=Action" class="genre-chip">Action</a>
+            <a href="/series/browse?genre=Comedy" class="genre-chip">Comedy</a>
+            <a href="/series/browse?genre=Drama" class="genre-chip">Drama</a>
+            <a href="/series/browse?genre=Thriller" class="genre-chip">Thriller</a>
+            <a href="/series/browse?genre=Fantasy" class="genre-chip">Fantasy</a>
+            <a href="/series/browse?genre=Sci-Fi" class="genre-chip">Sci‑Fi</a>
+            <a href="/series/browse?genre=Romance" class="genre-chip">Romance</a>
+            <a href="/series/browse?genre=Crime" class="genre-chip">Crime</a>
         </div>
     </article>
 
@@ -374,23 +371,28 @@
         <div class="card-header">
             <div>
                 <div class="card-title">Continue watching</div>
-                <div class="card-sub">Pick up right where you left off.</div>
+                <div class="card-sub">
+                    Pick up right where you left off in this browser.
+                </div>
             </div>
         </div>
 
         <div class="horizontal-scroll">
-            {% if latest_series and latest_series|length > 0 %}
-                {% for s in latest_series %}
-                <a href="/series/{{ s.id }}" class="tile-link">
+            {% if continue_items and continue_items|length > 0 %}
+                {% for item in continue_items %}
+                <a href="/series/{{ item.series_id }}/season/{{ item.season_number }}/episode/{{ item.episode_number }}"
+                   class="tile-link">
                     <div class="tile">
                         <div class="tile-poster">
-                            {% if s.poster_path %}
-                                <img src="{{ url_for('static', path=s.poster_path) }}"
-                                     alt="{{ s.title }} poster">
+                            {% if item.poster_path %}
+                                <img src="{{ url_for('static', path=item.poster_path) }}"
+                                     alt="{{ item.title }} poster">
                             {% endif %}
                         </div>
-                        <div class="tile-title">{{ s.title }}</div>
-                        <div class="tile-meta">Progress · 45%</div>
+                        <div class="tile-title">{{ item.title }}</div>
+                        <div class="tile-meta">
+                            Season {{ item.season_number }} · Episode {{ item.episode_number }}
+                        </div>
                         <div class="progress-bar">
                             <div class="progress-inner"></div>
                         </div>
@@ -414,4 +416,4 @@
 
 </section>
 {% endblock %}
-                                
+                
