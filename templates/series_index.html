@@ -34,6 +34,12 @@
         color: var(--text-muted);
     }
 
+    .card-link {
+        font-size: 11px;
+        color: #a5b4fc;
+        text-decoration: none;
+    }
+
     /* HERO SLIDER */
 
     .hero-shell {
@@ -165,7 +171,7 @@
         display: inline-block;
     }
 
-    /* TRENDING & CONTINUE */
+    /* HORIZONTAL LISTS */
 
     .horizontal-scroll {
         display: flex;
@@ -213,22 +219,6 @@
     .tile-meta {
         font-size: 11px;
         color: var(--text-muted);
-    }
-
-    .progress-bar {
-        width: 100%;
-        height: 4px;
-        border-radius: 999px;
-        background: rgba(31, 41, 55, 0.9);
-        overflow: hidden;
-        margin-top: 4px;
-    }
-
-    .progress-inner {
-        height: 100%;
-        width: 45%;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #22c55e, #a3e635);
     }
 
     @media (max-width: 768px) {
@@ -366,35 +356,32 @@
         </div>
     </article>
 
-    <!-- CONTINUE WATCHING -->
+    <!-- ALL WEB SERIES (short row + See more) -->
     <article class="card">
         <div class="card-header">
             <div>
-                <div class="card-title">Continue watching</div>
+                <div class="card-title">All web series</div>
                 <div class="card-sub">
-                    Pick up right where you left off in this browser.
+                    Recently added web series across all genres.
                 </div>
             </div>
+            <a href="/series/browse" class="card-link">See more →</a>
         </div>
 
         <div class="horizontal-scroll">
-            {% if continue_items and continue_items|length > 0 %}
-                {% for item in continue_items %}
-                <a href="/series/{{ item.series_id }}/season/{{ item.season_number }}/episode/{{ item.episode_number }}"
-                   class="tile-link">
+            {% if latest_series and latest_series|length > 0 %}
+                {% for s in latest_series %}
+                <a href="/series/{{ s.id }}" class="tile-link">
                     <div class="tile">
                         <div class="tile-poster">
-                            {% if item.poster_path %}
-                                <img src="{{ url_for('static', path=item.poster_path) }}"
-                                     alt="{{ item.title }} poster">
+                            {% if s.poster_path %}
+                                <img src="{{ url_for('static', path=s.poster_path) }}"
+                                     alt="{{ s.title }} poster">
                             {% endif %}
                         </div>
-                        <div class="tile-title">{{ item.title }}</div>
+                        <div class="tile-title">{{ s.title }}</div>
                         <div class="tile-meta">
-                            Season {{ item.season_number }} · Episode {{ item.episode_number }}
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-inner"></div>
+                            {{ s.year or "" }}{% if s.quality %} · {{ s.quality }}{% endif %}
                         </div>
                     </div>
                 </a>
@@ -404,10 +391,7 @@
                 <div class="tile">
                     <div class="tile-poster"></div>
                     <div class="tile-title">Series {{ i + 1 }}</div>
-                    <div class="tile-meta">Progress · 45%</div>
-                    <div class="progress-bar">
-                        <div class="progress-inner"></div>
-                    </div>
+                    <div class="tile-meta">HD · 2024</div>
                 </div>
                 {% endfor %}
             {% endif %}
@@ -416,4 +400,4 @@
 
 </section>
 {% endblock %}
-                
+            
