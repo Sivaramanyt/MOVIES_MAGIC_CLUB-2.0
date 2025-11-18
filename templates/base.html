@@ -3,19 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Movies Magic Club</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         :root {
             --bg-main: #020617;
-            --bg-panel: #020617;
             --bg-card: #020617;
-            --text-main: #f9fafb;
+            --text-main: #e5e7eb;
             --text-muted: #9ca3af;
-            --accent: #fb7185;
-            --accent-2: #fb923c;
-            --radius-xl: 26px;
-            --glass-border: rgba(148, 163, 184, 0.3);
         }
 
         * {
@@ -26,102 +21,72 @@
             margin: 0;
             padding: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-                "Inter", sans-serif;
-            background: radial-gradient(circle at top, #020617, #020617 40%, #000000 100%);
+                         "Inter", "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #020617, #020617 40%, #000 90%);
             color: var(--text-main);
         }
 
-        a {
-            color: inherit;
-        }
-
-        .app-shell {
+        .root-shell {
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            padding: 16px 10px 24px;
         }
 
-        .app-inner {
-            width: 100%;
+        .app-shell {
             max-width: 480px;
-            background: radial-gradient(circle at top, #020617, #020617 40%, #020617 100%);
-            border-radius: 30px;
-            border: 1px solid rgba(15, 23, 42, 0.9);
-            box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.9),
-                0 0 0 1px rgba(15, 23, 42, 0.7);
-            padding: 18px 16px 20px;
+            width: 100%;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #020617, #020617 60%, #000 100%);
+            padding: 14px 12px 16px;
+            color: var(--text-main);
         }
 
-        /* ---------- HEADER ---------- */
-
-        .app-header {
+        .top-card {
+            background: rgba(15, 23, 42, 0.98);
             border-radius: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
             padding: 12px 14px 14px;
-            background: radial-gradient(circle at top left, #020617, #020617);
-            border: 1px solid var(--glass-border);
             margin-bottom: 14px;
         }
 
-        .header-top {
+        .top-row {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            align-items: center;
             margin-bottom: 10px;
         }
 
-        .brand {
-            display: inline-flex;
-            align-items: center;
+        .logo-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            background: radial-gradient(circle at top left, #0f172a, #020617);
+            border: 1px solid rgba(148, 163, 184, 0.7);
+        }
+
+        .admin-btn {
             padding: 6px 12px;
             border-radius: 999px;
-            border: 1px solid rgba(51, 65, 85, 0.9);
-            background: rgba(15, 23, 42, 0.95);
-            font-size: 13px;
-            letter-spacing: 0.15em;
-        }
-
-        .brand span:nth-child(1) {
-            margin-right: 4px;
-        }
-
-        .brand span:nth-child(2) {
-            color: #f97316;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-admin {
-            font-size: 11px;
-            padding: 6px 12px;
-            border-radius: 999px;
-            border: 1px solid rgba(55, 65, 81, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.7);
             background: #020617;
+            font-size: 11px;
             color: #e5e7eb;
             text-decoration: none;
         }
 
-        .search-wrap {
+        /* SEARCH BAR */
+
+        .search-form {
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 6px;
-        }
-
-        .search-input-wrap {
-            flex: 1;
-            position: relative;
+            margin-bottom: 10px;
         }
 
         .search-input {
-            width: 100%;
-            padding: 8px 12px;
+            flex: 1;
+            padding: 7px 10px;
             border-radius: 999px;
             border: 1px solid rgba(55, 65, 81, 0.9);
             background: #020617;
@@ -131,145 +96,102 @@
         }
 
         .search-input::placeholder {
-            color: rgba(148, 163, 184, 0.75);
+            color: #6b7280;
         }
 
         .search-btn {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 999px;
             border: none;
-            background: radial-gradient(circle at top, #22d3ee, #6366f1);
-            color: #020617;
-            display: inline-flex;
+            background: radial-gradient(circle at top, #22c55e, #0ea5e9);
+            display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
             cursor: pointer;
         }
 
-        .header-bottom {
-            margin-top: 10px;
+        .search-btn-icon {
+            font-size: 14px;
+        }
+
+        .tab-row {
             display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .nav-toggle {
-            display: inline-flex;
-            padding: 3px;
-            border-radius: 999px;
-            background: radial-gradient(circle at top, #020617, #020617);
-            border: 1px solid rgba(30, 64, 175, 0.6);
-            gap: 4px;
-        }
-
-        /* ---------- SHARED PILL BUTTONS ---------- */
-
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-size: 12px;
-            border: 1px solid rgba(55, 65, 81, 0.95);
-            background: #020617;
-            color: #e5e7eb;
-            text-decoration: none;
-            transition:
-                background 0.25s ease,
-                color 0.25s ease,
-                border-color 0.25s ease,
-                transform 0.15s ease,
-                box-shadow 0.25s ease;
-            min-width: 72px;
-            justify-content: center;
-        }
-
-        .pill:hover {
-            transform: translateY(-1px);
-            border-color: rgba(148, 163, 184, 0.9);
-        }
-
-        .pill.active {
-            background: linear-gradient(135deg, #fb7185, #fb923c);
-            color: #020617;
-            border-color: transparent;
-            box-shadow: 0 10px 25px rgba(248, 113, 113, 0.65);
-        }
-
-        /* ---------- MAIN CONTENT ---------- */
-
-        .app-main {
+            gap: 8px;
             margin-top: 6px;
         }
 
-        .footer {
-            margin-top: 18px;
-            font-size: 10px;
-            color: var(--text-muted);
+        .tab-pill {
+            flex: 1;
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.7);
+            background: #020617;
+            color: #e5e7eb;
             text-align: center;
+            text-decoration: none;
         }
 
-        @media (min-width: 768px) {
-            .app-inner {
-                max-width: 520px;
-            }
+        .tab-pill.active {
+            background: linear-gradient(135deg, #f97316, #ec4899);
+            border-color: transparent;
+            color: #020617;
+            box-shadow: 0 10px 25px rgba(248, 113, 113, 0.5);
+        }
+
+        .footer {
+            margin-top: 26px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
         }
     </style>
 </head>
 <body>
-<div class="app-shell">
-    <div class="app-inner">
-        <header class="app-header">
-            <div class="header-top">
-                <div class="brand">
-                    <span>MOVIES</span><span>MAGIC</span><span>CLUB</span>
-                </div>
-                <div class="header-actions">
-                    <a href="/admin/login" class="btn-admin">Admin</a>
-                    
-                </div>
+<div class="root-shell">
+    <div class="app-shell">
+
+        <!-- TOP: logo + search + tabs -->
+        <header class="top-card">
+            <div class="top-row">
+                <div class="logo-pill">MOVIES MAGIC CLUB</div>
+                <a href="/admin" class="admin-btn">Admin</a>
             </div>
 
-            <div class="search-wrap">
-                <form class="search-input-wrap" action="/search" method="get">
-                    <input
-                        type="text"
-                        name="q"
-                        class="search-input"
-                        placeholder="Search movies..."
-                        value="{{ request.query_params.get('q') or '' }}"
-                    >
-                </form>
-                <button class="search-btn" onclick="document.querySelector('.search-input-wrap form').submit();">
-                    🔍
+            <!-- SEARCH FORM -->
+            <form action="/search" method="get" class="search-form">
+                <input
+                    type="text"
+                    name="q"
+                    class="search-input"
+                    placeholder="Search movies..."
+                    value="{{ query if query is defined else '' }}"
+                >
+                <button type="submit" class="search-btn">
+                    <span class="search-btn-icon">🔍</span>
                 </button>
-            </div>
+            </form>
 
-            <div class="header-bottom">
-                <div class="nav-toggle">
-                    <a href="/"
-                       class="pill {% if not request.url.path.startswith('/series') %}active{% endif %}">
-                        Movies
-                    </a>
-                    <a href="/series"
-                       class="pill {% if request.url.path.startswith('/series') %}active{% endif %}">
-                        Series
-                    </a>
-                </div>
-            </div>
+            <!-- TABS -->
+            <nav class="tab-row">
+                <a href="/" class="tab-pill {% if active_tab == 'movies' or active_tab is not defined %}active{% endif %}">
+                    Movies
+                </a>
+                <a href="/series" class="tab-pill {% if active_tab == 'series' %}active{% endif %}">
+                    Series
+                </a>
+            </nav>
         </header>
 
-        <main class="app-main">
-            {% block content %}{% endblock %}
-        </main>
+        <!-- PAGE CONTENT -->
+        {% block content %}{% endblock %}
 
         <footer class="footer">
-            © {{ (now().year if now is defined else 2025) }} Movies Magic Club. All rights reserved.
+            © 2025 Movies Magic Club. All rights reserved.
         </footer>
     </div>
 </div>
+
 </body>
 </html>
