@@ -10,31 +10,40 @@ from starlette.middleware.sessions import SessionMiddleware
 from pyrogram import Client, filters, idle
 
 from db import connect_to_mongo, close_mongo_connection
+
 from routes.movies import router as movies_router
 from routes.web import router as web_router
 from routes.series_web import router as series_router
-from routes.admin_auth import router as admin_auth_router
-from routes.admin_movies import router as admin_movies_router
-from routes.admin_series import router as admin_series_router
-from config import API_ID, API_HASH, BOT_TOKEN  # from config.py
+
+# use the single admin router that contains /admin/login, /admin/movies, /admin/series, etc.
+from routes.admin import router as admin_router
+
 from routes.verify import router as verify_router
+
+from config import API_ID, API_HASH, BOT_TOKEN  # from config.py
 
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-this-secret")
 
 app = FastAPI()
 
+# Sessions for admin login + verification cookies
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 
+# Static files (posters, css, etc.)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Public site routers
 app.include_router(movies_router)
 app.include_router(web_router)
 app.include_router(series_router)
-app.include_router(admin_auth_router)
-app.include_router(admin_movies_router)
-app.include_router(admin_series_router)
+
+# Admin (login + movies + series) router
+app.include_router(admin_router)
+
+# Verification pages (start + success)
 app.include_router(verify_router)
 
+# ---------- Pyrogram bot ----------
 
 bot = Client(
     "movie_webapp_bot",
@@ -61,6 +70,8 @@ async def run_bot():
     await bot.stop()
     print("🛑 Pyrogram bot stopped")
 
+
+# ---------- FastAPI lifecycle ----------
 
 @app.on_event("startup")
 async def on_startup():
