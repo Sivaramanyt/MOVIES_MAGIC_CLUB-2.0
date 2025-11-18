@@ -4,8 +4,16 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from verification import generate_verify_token, create_universal_shortlink
-from verification_utils import mark_verified, should_require_verification
+from verification import create_universal_shortlink
+from verification_utils import (
+    should_require_verification,
+    mark_verified,
+    get_or_create_session_id,
+)
+from verification_tokens import (
+    create_verification_token,
+    use_verification_token,
+)
 
 templates = Jinja2Templates(directory="templates")
 router = APIRouter()
@@ -13,26 +21,49 @@ router = APIRouter()
 
 @router.get("/verify/start", response_class=HTMLResponse)
 async def verify_start(request: Request, next: str = "/"):
-    # If already allowed, skip verification
+    """
+    Entry point when user exceeded free limit.
+    Generates a one-time token + callback URL, then creates a monetized shortlink
+    whose final destination is that callback URL (no Telegram).
+    """
+    # If verification not required (already verified / free), skip
     if not await should_require_verification(request):
         return RedirectResponse(next, status_code=303)
 
-    token = generate_verify_token(16)
-    # Use your own logic to build original_url for monetised shortlink
-    original_url = f"https://t.me/YourBotUserName?start={token}"
-    short_url = create_universal_shortlink(original_url)
+    # Bind token to current session and target URL
+    session_id = await get_or_create_session_id(request)
+    token = await create_verification_token(session_id, next)
+
+    # Where user must land after finishing shortlink
+    base_url = f"{request.url.scheme}://{request.url.netloc}"
+    callback_url = f"{base_url}/verify/auto?token={token}"
+
+    # Create monetized shortlink that redirects to callback_url
+    short_url = create_universal_shortlink(callback_url)
 
     return templates.TemplateResponse(
         "verify_start.html",
         {
             "request": request,
             "short_url": short_url,
-            "next": next,
         },
     )
 
 
-@router.get("/verify/complete")
-async def verify_complete(request: Request, next: str = "/"):
+@router.get("/verify/auto")
+async def verify_auto(request: Request, token: str):
+    """
+    Auto-verification callback.
+    Called by browser after shortlink redirects back to website.
+    """
+    doc = await use_verification_token(token)
+    if not doc:
+        # Invalid / already used / expired token -> send home
+        return RedirectResponse("/", status_code=303)
+
+    # Mark this browser session as verified
     await mark_verified(request)
-    return RedirectResponse(next, status_code=303)
+
+    next_url = doc.get("next") or "/"
+    return RedirectResponse(next_url, status_code=303)
+    
