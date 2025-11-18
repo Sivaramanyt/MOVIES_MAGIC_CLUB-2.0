@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Movies Magic Club</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='favicon.png') }}">
     <style>
         :root {
             --bg-main: #020617;
@@ -21,87 +21,89 @@
             margin: 0;
             padding: 0;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-                         "Inter", "Segoe UI", sans-serif;
-            background: radial-gradient(circle at top, #020617, #020617 40%, #000 90%);
+                "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #0f172a 0, #020617 45%, #000 100%);
             color: var(--text-main);
         }
 
-        .root-shell {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
+        a {
+            color: inherit;
         }
 
         .app-shell {
-            max-width: 480px;
-            width: 100%;
             min-height: 100vh;
-            background: radial-gradient(circle at top, #020617, #020617 60%, #000 100%);
-            padding: 14px 12px 16px;
-            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-main {
+            flex: 1;
+        }
+
+        /* Top bar */
+
+        .top-shell {
+            max-width: 960px;
+            margin: 12px auto 0;
+            padding: 6px 10px 10px;
         }
 
         .top-card {
-            background: rgba(15, 23, 42, 0.98);
             border-radius: 24px;
-            border: 1px solid rgba(148, 163, 184, 0.5);
-            padding: 12px 14px 14px;
-            margin-bottom: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: radial-gradient(circle at top left, #020617, #020617);
+            padding: 10px 12px 12px;
         }
 
         .top-row {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .logo-pill {
-            padding: 6px 14px;
-            border-radius: 999px;
-            font-size: 12px;
-            letter-spacing: 0.12em;
-            background: radial-gradient(circle at top left, #0f172a, #020617);
-            border: 1px solid rgba(148, 163, 184, 0.7);
-        }
-
-        .admin-btn {
-            padding: 6px 12px;
-            border-radius: 999px;
-            border: 1px solid rgba(148, 163, 184, 0.7);
-            background: #020617;
-            font-size: 11px;
-            color: #e5e7eb;
-            text-decoration: none;
-        }
-
-        /* SEARCH BAR */
-
-        .search-form {
-            display: flex;
-            align-items: center;
             gap: 8px;
             margin-bottom: 10px;
         }
 
-        .search-input {
-            flex: 1;
-            padding: 7px 10px;
+        .brand-pill {
             border-radius: 999px;
-            border: 1px solid rgba(55, 65, 81, 0.9);
+            padding: 6px 16px;
+            border: 1px solid rgba(148, 163, 184, 0.8);
+            font-size: 12px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .btn-admin {
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.9);
             background: #020617;
             color: #e5e7eb;
-            font-size: 12px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .search-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .search-input {
+            flex: 1;
+            border-radius: 999px;
+            border: 1px solid rgba(51, 65, 85, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--text-main);
+            padding: 8px 14px;
+            font-size: 13px;
             outline: none;
         }
 
-        .search-input::placeholder {
-            color: #6b7280;
-        }
-
-        .search-btn {
-            width: 32px;
-            height: 32px;
+        .btn-search {
+            width: 40px;
+            height: 40px;
             border-radius: 999px;
             border: none;
             background: radial-gradient(circle at top, #22c55e, #0ea5e9);
@@ -109,89 +111,106 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-        }
-
-        .search-btn-icon {
-            font-size: 14px;
+            color: #020617;
+            font-size: 18px;
         }
 
         .tab-row {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             margin-top: 6px;
         }
 
         .tab-pill {
             flex: 1;
-            padding: 7px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.7);
-            background: #020617;
-            color: #e5e7eb;
             text-align: center;
+            border-radius: 999px;
+            padding: 9px 0;
+            font-size: 13px;
+            cursor: pointer;
             text-decoration: none;
+            border: 1px solid transparent;
         }
 
-        .tab-pill.active {
-            background: linear-gradient(135deg, #f97316, #ec4899);
-            border-color: transparent;
+        .tab-pill--active {
+            background: linear-gradient(90deg, #f97316, #ec4899);
             color: #020617;
-            box-shadow: 0 10px 25px rgba(248, 113, 113, 0.5);
+            box-shadow: 0 10px 30px rgba(248, 113, 113, 0.7);
         }
+
+        .tab-pill--ghost {
+            background: rgba(15, 23, 42, 0.95);
+            border-color: rgba(51, 65, 85, 0.9);
+            color: var(--text-main);
+        }
+
+        /* Footer */
 
         .footer {
-            margin-top: 26px;
+            margin-top: 24px;
+            padding: 16px 0 18px;
             font-size: 11px;
             color: var(--text-muted);
             text-align: center;
         }
+
+        @media (max-width: 768px) {
+            .top-shell {
+                padding: 6px 8px 10px;
+            }
+            .top-row {
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="root-shell">
-    <div class="app-shell">
-
-        <!-- TOP: logo + search + tabs -->
-        <header class="top-card">
+<div class="app-shell">
+    <header class="top-shell">
+        <div class="top-card">
             <div class="top-row">
-                <div class="logo-pill">MOVIES MAGIC CLUB</div>
-                <a href="/admin" class="admin-btn">Admin</a>
+                <div class="brand-pill">
+                    MOVIES MAGIC CLUB
+                </div>
+                <!-- Admin button now points to a valid route -->
+                <a href="/admin/movies" class="btn-admin">
+                    Admin
+                </a>
             </div>
 
-            <!-- SEARCH FORM -->
-            <form action="/search" method="get" class="search-form">
-                <input
-                    type="text"
-                    name="q"
-                    class="search-input"
-                    placeholder="Search movies..."
-                    value="{{ query if query is defined else '' }}"
-                >
-                <button type="submit" class="search-btn">
-                    <span class="search-btn-icon">🔍</span>
-                </button>
-            </form>
+            <div class="search-row">
+                <form action="/" method="get" style="display:flex;flex:1;gap:8px;">
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ request.query_params.get('q') or '' }}"
+                        placeholder="Search movies..."
+                        class="search-input"
+                    />
+                    <button type="submit" class="btn-search">🔍</button>
+                </form>
+            </div>
 
-            <!-- TABS -->
-            <nav class="tab-row">
-                <a href="/" class="tab-pill {% if active_tab == 'movies' or active_tab is not defined %}active{% endif %}">
+            <div class="tab-row">
+                <a href="/"
+                   class="tab-pill {{ 'tab-pill--active' if active_tab == 'movies' else 'tab-pill--ghost' }}">
                     Movies
                 </a>
-                <a href="/series" class="tab-pill {% if active_tab == 'series' %}active{% endif %}">
+                <a href="/series"
+                   class="tab-pill {{ 'tab-pill--active' if active_tab == 'series' else 'tab-pill--ghost' }}">
                     Series
                 </a>
-            </nav>
-        </header>
+            </div>
+        </div>
+    </header>
 
-        <!-- PAGE CONTENT -->
+    <main class="app-main">
         {% block content %}{% endblock %}
+    </main>
 
-        <footer class="footer">
-            © 2025 Movies Magic Club. All rights reserved.
-        </footer>
-    </div>
+    <footer class="footer">
+        © 2025 Movies Magic Club. All rights reserved.
+    </footer>
 </div>
-
 </body>
 </html>
