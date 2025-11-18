@@ -1,7 +1,7 @@
 import os
 import motor.motor_asyncio
 
-MONGO_URI = os.getenv("MONGO_URI", "")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://Sivaraman444:rama444@cluster0.7xisnrl.mongodb.net/?appName=Cluster0")
 DB_NAME = os.getenv("DB_NAME", "sr_movies")
 
 mongo_client = None
