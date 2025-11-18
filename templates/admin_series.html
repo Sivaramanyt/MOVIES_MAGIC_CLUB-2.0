@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .admin-shell {
+      max-width: 960px;
+      margin: 0 auto;
+  }
+  .admin-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+  }
+  .admin-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+  }
+
+  .admin-tabs {
+      margin-top: 4px;
+      display: inline-flex;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      margin-bottom: 10px;
+  }
+  .admin-tab-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-muted);
+  }
+  .admin-tab-btn.active {
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      color: #fef2f2;
+      box-shadow: 0 6px 14px rgba(236, 72, 153, 0.6);
+  }
+
+  .admin-card {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      padding: 14px 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+  }
+
+  .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px 12px;
+  }
+  .admin-field label {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 2px;
+  }
+  .admin-input, .admin-select, .admin-textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 12px;
+      padding: 6px 8px;
+  }
+  .admin-textarea {
+      min-height: 70px;
+      resize: vertical;
+  }
+
+  .lang-multi {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      margin-top: 4px;
+  }
+  .lang-chip {
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: #020617;
+  }
+
+  .admin-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+  }
+  .admin-btn-primary {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #ecfdf5;
+  }
+  .admin-btn-secondary {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      padding: 5px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      background: #020617;
+      color: #e5e7eb;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+  }
+  .admin-msg {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--accent-emerald);
+  }
+
+  .admin-panel {
+      display: none;
+  }
+  .admin-panel.active {
+      display: block;
+  }
+
+  .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+  }
+  .admin-table th,
+  .admin-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.8);
+  }
+  .admin-table th {
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 500;
+  }
+</style>
+
+<section class="admin-shell">
+  <h1 class="admin-title">Admin · Series dashboard</h1>
+  <p class="admin-sub">
+      Add and manage web series, seasons and episodes.
+  </p>
+
+  <div style="font-size:11px; margin-bottom:6px;">
+      <a href="/admin/movies" style="color:#38bdf8; text-decoration:none;">← Back to Movies admin</a>
+  </div>
+
+  <div class="admin-tabs">
+      <button type="button" class="admin-tab-btn active" data-panel="panel-add">Add new series</button>
+      <button type="button" class="admin-tab-btn" data-panel="panel-list">All series</button>
+  </div>
+
+  <!-- ADD SERIES PANEL -->
+  <section id="panel-add" class="admin-panel active">
+      <article class="admin-card">
+          <form action="/admin/series" method="post" enctype="multipart/form-data">
+              <div class="admin-grid">
+                  <div class="admin-field">
+                      <label>Title</label>
+                      <input name="title" class="admin-input" required />
+                  </div>
+                  <div class="admin-field">
+                      <label>Year</label>
+                      <input name="year" class="admin-input" placeholder="2024" />
+                  </div>
+                  <div class="admin-field">
+                      <label>Quality</label>
+                      <input name="quality" class="admin-input" placeholder="HD / 1080p" />
+                  </div>
+                  <div class="admin-field">
+                      <label>Category / Genre</label>
+                      <input name="category" class="admin-input" placeholder="Thriller / Drama ..." />
+                  </div>
+                  <div class="admin-field">
+                      <label>Poster image</label>
+                      <input type="file" name="poster" class="admin-input" accept="image/*" />
+                      <small style="font-size:10px; color:var(--text-muted);">
+                          Upload a vertical poster for this series.
+                      </small>
+                  </div>
+              </div>
+
+              <div class="admin-field" style="margin-top:8px;">
+                  <label>Languages (select one or more)</label>
+                  <div class="lang-multi">
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Tamil" /> Tamil
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Telugu" /> Telugu
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Hindi" /> Hindi
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Malayalam" /> Malayalam
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="Kannada" /> Kannada
+                      </label>
+                      <label class="lang-chip">
+                          <input type="checkbox" name="languages" value="English" /> English
+                      </label>
+                  </div>
+              </div>
+
+              <div class="admin-field" style="margin-top:8px;">
+                  <label>Short description</label>
+                  <textarea name="description" class="admin-textarea"
+                            placeholder="Short description about the series..."></textarea>
+              </div>
+
+              <div class="admin-actions">
+                  <button type="submit" class="admin-btn-primary">Save series</button>
+              </div>
+
+              {% if message %}
+              <div class="admin-msg">{{ message }}</div>
+              {% endif %}
+          </form>
+      </article>
+  </section>
+
+  <!-- SERIES LIST PANEL -->
+  <section id="panel-list" class="admin-panel">
+      <article class="admin-card">
+          <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">
+              Existing series – click Manage seasons to add episodes later.
+          </div>
+          <div style="max-height:260px; overflow-y:auto;">
+              <table class="admin-table">
+                  <thead>
+                      <tr>
+                          <th>Title</th>
+                          <th>Year</th>
+                          <th>Langs</th>
+                          <th></th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {% for s in series_list %}
+                      <tr>
+                          <td>{{ s.title }}</td>
+                          <td>{{ s.year or "" }}</td>
+                          <td>{{ s.languages or "" }}</td>
+                          <td>
+                              <!-- IMPORTANT: Manage seasons link path -->
+                              <a href="/admin/series/{{ s.id }}/seasons"
+                                 class="admin-btn-secondary">
+                                  Manage seasons
+                              </a>
+                          </td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+          </div>
+      </article>
+  </section>
+</section>
+
+<script>
+  const seriesTabButtons = document.querySelectorAll(".admin-tab-btn");
+  const seriesPanels = document.querySelectorAll(".admin-panel");
+
+  seriesTabButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+          const target = btn.getAttribute("data-panel");
+          seriesTabButtons.forEach(b => b.classList.remove("active"));
+          seriesPanels.forEach(p => p.classList.remove("active"));
+          btn.classList.add("active");
+          document.getElementById(target).classList.add("active");
+      });
+  });
+</script>
+{% endblock %}
