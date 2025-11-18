@@ -15,3 +15,4 @@ SHORTLINK_URL = os.getenv("SHORTLINK_URL", "")
 
 if not API_ID or not API_HASH or not BOT_TOKEN:
     print("❌ Please set API_ID, API_HASH, BOT_TOKEN as env variables")
+
