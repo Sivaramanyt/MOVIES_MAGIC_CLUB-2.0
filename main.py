@@ -17,6 +17,8 @@ from routes.admin_auth import router as admin_auth_router
 from routes.admin_movies import router as admin_movies_router
 from routes.admin_series import router as admin_series_router
 from config import API_ID, API_HASH, BOT_TOKEN  # from config.py
+from routes.verify import router as verify_router
+
 
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-this-secret")
 
@@ -32,7 +34,7 @@ app.include_router(series_router)
 app.include_router(admin_auth_router)
 app.include_router(admin_movies_router)
 app.include_router(admin_series_router)
-
+app.include_router(verify_router)
 
 bot = Client(
     "movie_webapp_bot",
