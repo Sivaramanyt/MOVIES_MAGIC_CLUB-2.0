@@ -20,6 +20,7 @@ from routes.admin_series_seasons import router as admin_series_seasons_router
 from routes.verify import router as verify_router
 from routes.admin_episodes import router as admin_episodes_router
 from routes.admin_verification import router as admin_verification_router
+from routes.support import router as support_router
 from config import API_ID, API_HASH, BOT_TOKEN  # from config.py
 
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-this-secret")
