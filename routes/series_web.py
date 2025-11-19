@@ -16,6 +16,7 @@ from verification_utils import (
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+
 # ---------- HELPERS (old nested structure, still used by /series/.../episode/... if you want) ----------
 
 def _find_season(series: dict, season_number: int) -> Optional[dict]:
@@ -23,6 +24,7 @@ def _find_season(series: dict, season_number: int) -> Optional[dict]:
         if int(s.get("number", 0)) == season_number:
             return s
     return None
+
 
 def _find_episode(season: dict, episode_number: int) -> Optional[dict]:
     for e in season.get("episodes", []):
@@ -64,6 +66,7 @@ async def series_home(request: Request):
             "request": request,
             "latest_series": latest_series,
             "active_genre": "",
+            "active_tab": "series",  # for header highlighter
         },
     )
 
@@ -105,6 +108,7 @@ async def series_browse(request: Request, genre: str = ""):
             "request": request,
             "series_list": series_list,
             "genre": genre,
+            "active_tab": "series",
         },
     )
 
@@ -132,7 +136,6 @@ async def series_detail(request: Request, series_id: str):
             series = None
 
     if series:
-        # fetch seasons for this series
         seasons_cursor = (
             db["seasons"]
             .find({"series_id": series["_id"]})
@@ -143,7 +146,7 @@ async def series_detail(request: Request, series_id: str):
             soid = s["_id"]
             eps_cursor = (
                 db["episodes"]
-                .find({ "season_id": soid })
+                .find({"season_id": soid})
                 .sort("number", 1)
             )
             eps = [
@@ -170,6 +173,7 @@ async def series_detail(request: Request, series_id: str):
         "series": series,
         "seasons": seasons,
         "episodes_count": total_episodes,
+        "active_tab": "series",
     }
     return templates.TemplateResponse("series_detail.html", ctx)
 
@@ -215,6 +219,7 @@ async def episode_detail_page(request: Request, episode_id: str):
             "series": series,
             "season": season,
             "episode": episode_ctx,
+            "active_tab": "series",
         },
     )
 
@@ -240,6 +245,7 @@ async def episode_watch(request: Request, episode_id: str):
     # 3) Redirect to actual watch_url
     db = get_db()
     episode_doc: Optional[dict] = None
+
     if db is not None:
         try:
             eid = ObjectId(episode_id)
@@ -272,6 +278,7 @@ async def episode_download(request: Request, episode_id: str):
     # 3) Redirect to actual download_url
     db = get_db()
     episode_doc: Optional[dict] = None
+
     if db is not None:
         try:
             eid = ObjectId(episode_id)
@@ -314,7 +321,13 @@ async def episode_detail(
     if not series_doc:
         return templates.TemplateResponse(
             "episode_detail.html",
-            {"request": request, "series": None, "season": None, "episode": None},
+            {
+                "request": request,
+                "series": None,
+                "season": None,
+                "episode": None,
+                "active_tab": "series",
+            },
         )
 
     season = _find_season(series_doc, season_number)
@@ -323,7 +336,13 @@ async def episode_detail(
     if not (season and episode):
         return templates.TemplateResponse(
             "episode_detail.html",
-            {"request": request, "series": None, "season": None, "episode": None},
+            {
+                "request": request,
+                "series": None,
+                "season": None,
+                "episode": None,
+                "active_tab": "series",
+            },
         )
 
     languages = series_doc.get("languages") or []
@@ -362,6 +381,7 @@ async def episode_detail(
             "series": series_ctx,
             "season": season_ctx,
             "episode": episode_ctx,
+            "active_tab": "series",
         },
-    )
-    
+              )
+        
