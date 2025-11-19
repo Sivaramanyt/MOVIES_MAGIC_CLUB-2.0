@@ -138,7 +138,9 @@
         Episode not found.
     </p>
 {% else %}
-{% set audio_text = series.audio or (series.languages|join(', ') if series.languages else series.language) %}
+{# build audio_text from series (audio -> languages -> language) #}
+{% set audio_text = series.audio
+    or (series.languages|join(', ') if series.languages else series.language) %}
 
 <section class="detail-shell">
     <article class="detail-left">
@@ -163,21 +165,34 @@
             </div>
 
             <div class="detail-actions">
-                {% if episode.watch_url %}
-                    <a href="{{ episode.watch_url }}"
-                       class="detail-btn-primary"
-                       target="_blank"
-                       rel="noopener">
-                        ▶ Watch now
-                    </a>
-                {% endif %}
-                {% if episode.download_url %}
-                    <a href="{{ episode.download_url }}"
-                       class="detail-btn-secondary"
-                       target="_blank"
-                       rel="noopener">
-                        ⬇ Download
-                    </a>
+                {# Preferred: gated routes with verification #}
+                {% if episode.id %}
+                    {% if episode.watch_url %}
+                        <a href="/episode/{{ episode.id }}/watch"
+                           class="detail-btn-primary">
+                            ▶ Watch now
+                        </a>
+                    {% endif %}
+                    {% if episode.download_url %}
+                        <a href="/episode/{{ episode.id }}/download"
+                           class="detail-btn-secondary">
+                            ⬇ Download
+                        </a>
+                    {% endif %}
+                {% else %}
+                    {# Fallback for old embedded episodes (no id) #}
+                    {% if episode.watch_url %}
+                        <a href="{{ episode.watch_url }}"
+                           class="detail-btn-primary" target="_blank" rel="noopener">
+                            ▶ Watch now
+                        </a>
+                    {% endif %}
+                    {% if episode.download_url %}
+                        <a href="{{ episode.download_url }}"
+                           class="detail-btn-secondary" target="_blank" rel="noopener">
+                            ⬇ Download
+                        </a>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
