@@ -40,7 +40,7 @@
         text-decoration: none;
     }
 
-    /* HERO SLIDER - UPDATED */
+    /* HERO SLIDER */
 
     .hero-shell {
         position: relative;
@@ -194,9 +194,15 @@
         color: #e5e7eb;
         text-decoration: none;
         display: inline-block;
+        transition: all 0.3s ease;
     }
 
-    /* HORIZONTAL LISTS */
+    .genre-chip:hover {
+        background: rgba(59, 130, 246, 0.2);
+        border-color: rgba(59, 130, 246, 0.7);
+    }
+
+    /* HORIZONTAL LISTS - OPTIMIZED */
 
     .horizontal-scroll {
         display: flex;
@@ -204,14 +210,41 @@
         overflow-x: auto;
         padding-bottom: 4px;
         scrollbar-width: thin;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .horizontal-scroll::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .horizontal-scroll::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 10px;
+    }
+
+    .horizontal-scroll::-webkit-scrollbar-thumb {
+        background: rgba(59, 130, 246, 0.5);
+        border-radius: 10px;
+    }
+
+    .horizontal-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(59, 130, 246, 0.7);
     }
 
     .tile {
-        flex: 0 0 150px;
+        flex: 0 0 170px;
         border-radius: 18px;
         background: radial-gradient(circle at top, #1e293b, #020617);
         border: 1px solid rgba(55, 65, 81, 0.9);
         padding: 8px 8px 10px;
+        transition: all 0.3s ease;
+    }
+
+    .tile:hover {
+        transform: translateY(-4px);
+        border-color: rgba(59, 130, 246, 0.7);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
     }
 
     .tile-link {
@@ -226,17 +259,16 @@
         overflow: hidden;
         background: radial-gradient(circle at top, #1d4ed8, #020617);
         margin-bottom: 6px;
-        height: 200px; /* FIXED HEIGHT ADDED */
-        position: relative;
+        height: 220px;
+        min-height: 220px;
         display: flex;
         align-items: center;
         justify-content: center;
-    
     }
 
     .tile-poster img {
         width: 100%;
-        height: 110px;
+        height: 100%;
         object-fit: cover;
         display: block;
     }
@@ -245,11 +277,17 @@
         font-size: 12px;
         font-weight: 500;
         margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .tile-meta {
         font-size: 11px;
         color: var(--text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     @media (max-width: 768px) {
@@ -261,7 +299,7 @@
 
 <section class="page-shell">
 
-    <!-- HERO: Latest web series -->
+    <!-- HERO: Latest web series with auto-slider -->
     <article class="hero-shell">
         <div class="card-header" style="margin-bottom:10px;">
             <div>
@@ -435,15 +473,14 @@
 </section>
 
 <script>
-// Hero Auto-Slider JavaScript - Fully functional
+// Hero Auto-Slider JavaScript
 (function() {
     const heroItems = document.querySelectorAll('.hero-item');
     const dots = document.querySelectorAll('.hero-dot');
     let currentSlide = 0;
     let autoSlideInterval;
-    const slideDelay = 5000; // 5 seconds auto-slide
+    const slideDelay = 5000; // 5 seconds
 
-    // Check if we have multiple slides
     if (heroItems.length <= 1) {
         console.log('Only one slide, auto-slider disabled');
         return;
@@ -452,15 +489,12 @@
     console.log(`Hero slider initialized with ${heroItems.length} slides`);
 
     function showSlide(index) {
-        // Ensure index is within bounds
         if (index < 0) index = heroItems.length - 1;
         if (index >= heroItems.length) index = 0;
 
-        // Remove active class from all items and dots
         heroItems.forEach(item => item.classList.remove('active'));
         dots.forEach(dot => dot.classList.remove('active'));
 
-        // Add active class to current slide
         if (heroItems[index]) {
             heroItems[index].classList.add('active');
         }
@@ -483,7 +517,7 @@
     }
 
     function startAutoSlide() {
-        stopAutoSlide(); // Clear any existing interval
+        stopAutoSlide();
         autoSlideInterval = setInterval(nextSlide, slideDelay);
         console.log('Auto-slide started');
     }
@@ -501,11 +535,11 @@
             console.log(`Dot ${index + 1} clicked`);
             showSlide(index);
             stopAutoSlide();
-            startAutoSlide(); // Restart auto-slide after manual navigation
+            startAutoSlide();
         });
     });
 
-    // Pause on hover (desktop)
+    // Pause on hover
     const heroShell = document.querySelector('.hero-shell');
     if (heroShell) {
         heroShell.addEventListener('mouseenter', () => {
@@ -518,7 +552,7 @@
         });
     }
 
-    // Touch swipe support for mobile
+    // Touch swipe support
     let touchStartX = 0;
     let touchEndX = 0;
     const minSwipeDistance = 50;
@@ -538,15 +572,13 @@
         const swipeDistance = touchEndX - touchStartX;
         
         if (Math.abs(swipeDistance) < minSwipeDistance) {
-            return; // Not a valid swipe
+            return;
         }
 
         if (swipeDistance < 0) {
-            // Swipe left - next slide
             console.log('Swiped left');
             nextSlide();
         } else {
-            // Swipe right - previous slide
             console.log('Swiped right');
             prevSlide();
         }
@@ -555,7 +587,7 @@
         startAutoSlide();
     }
 
-    // Start auto-slide on page load
+    // Start auto-slide
     startAutoSlide();
     console.log('Hero slider ready!');
 })();
