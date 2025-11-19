@@ -9,161 +9,246 @@
         gap: 16px;
         font-size: 13px;
     }
-
     .card {
         background: rgba(15, 23, 42, 0.96);
         border-radius: 24px;
         border: 1px solid rgba(148, 163, 184, 0.5);
         padding: 14px 14px 16px;
     }
-
     .card-header {
         display: flex;
         justify-content: space-between;
         align-items: baseline;
         margin-bottom: 8px;
     }
-
     .card-title {
         font-size: 15px;
         font-weight: 600;
     }
-
     .card-sub {
         font-size: 11px;
         color: var(--text-muted);
     }
-
     .card-link {
         font-size: 11px;
         color: #a5b4fc;
         text-decoration: none;
+        white-space: nowrap;
     }
 
+    /* HERO SLIDER */
     .hero-shell {
         position: relative;
         overflow: hidden;
         border-radius: 24px;
-        background: radial-gradient(circle at top left, rgba(59,130,246,0.25), rgba(15,23,42,0.98));
-        border: 1px solid rgba(55,65,81,0.9);
+        background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.25), rgba(15, 23, 42, 0.98));
+        border: 1px solid rgba(55, 65, 81, 0.9);
         padding: 14px 14px 16px;
     }
-
-    .hero-slider-wrapper { position: relative; min-height: 200px; }
-    .hero-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 10px; }
+    .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+    @media (min-width: 720px) {
+        .hero-grid {
+            grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+        }
+    }
     .hero-item {
         display: grid;
-        grid-template-columns: minmax(0,1.05fr) minmax(0,1.15fr);
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
         gap: 12px;
         align-items: center;
-        opacity: 0;
-        position: absolute;
-        width: 100%; top: 0; left: 0;
-        transition: opacity 0.6s ease-in-out;
-        pointer-events: none;
     }
-    .hero-item.active { opacity: 1; position: relative; pointer-events: auto; }
-    .hero-poster { border-radius: 22px; overflow: hidden; background: radial-gradient(circle at top,#1d4ed8,#020617); min-height:180px; }
-    .hero-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .hero-main { display: flex; flex-direction: column; gap: 8px; }
-    .hero-title { font-size: 20px; font-weight: 650; }
-    .hero-meta { font-size: 12px; color: var(--text-muted); }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-    .btn-hero-primary, .btn-hero-secondary {
-        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-        padding: 8px 16px; border-radius: 999px; font-size: 12px; text-decoration: none; border: none; cursor: pointer; white-space: nowrap;
+    .hero-poster {
+        border-radius: 22px;
+        overflow: hidden;
+        background: radial-gradient(circle at top, #1d4ed8, #020617);
+        min-height: 180px;
+        max-height: 260px;
     }
-    .btn-hero-primary { background: linear-gradient(135deg,#f97316,#ec4899); color: #020617; box-shadow: 0 12px 30px rgba(248,113,113,0.6); }
-    .btn-hero-secondary { background: #020617; color: #e5e7eb; border: 1px solid rgba(148,163,184,0.8); }
-    .hero-dots { display: flex; justify-content: center; gap: 4px; margin-top: 10px; }
-    .hero-dot { width: 16px; height: 3px; border-radius: 999px; background: rgba(148,163,184,0.6); cursor: pointer; transition: all 0.3s ease; }
-    .hero-dot.active { background: #f97316; width: 24px; }
+    .hero-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .hero-main {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .hero-title {
+        font-size: 19px;
+        font-weight: 700;
+    }
+    .hero-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    .hero-actions {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .btn-primary,
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 12px;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #f97316, #ec4899);
+        color: #020617;
+        box-shadow: 0 10px 26px rgba(248, 113, 113, 0.65);
+    }
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        color: #e5e7eb;
+    }
+    .hero-dot-row {
+        margin-top: 10px;
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+    }
+    .hero-dot {
+        width: 20px;
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.35);
+    }
+    .hero-dot.active {
+        background: #f97316;
+    }
 
-    .genre-card { display: flex; flex-direction: column; gap: 8px; }
-    .genre-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    /* GENRE CHIPS */
+    .genre-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
     .genre-chip {
-        padding: 6px 12px; border-radius: 999px; font-size: 11px;
-        border: 1px solid rgba(75,85,99,0.9); background: #020617; color: #e5e7eb; text-decoration: none; display: inline-block; transition: all 0.3s ease;
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        font-size: 12px;
+        color: #e5e7eb;
+        text-decoration: none;
     }
-    .genre-chip:hover { background: rgba(59,130,246,0.2); border-color: rgba(59,130,246,0.7); }
 
-    .horizontal-scroll {
-        display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;
-        scrollbar-width: thin; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+    /* CAROUSEL ROWS FOR TRENDING + ALL */
+    .row-shell {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
     }
-    .horizontal-scroll::-webkit-scrollbar { height: 4px; }
-    .horizontal-scroll::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.5); border-radius: 10px; }
-    .tile { flex: 0 0 135px; border-radius: 18px; background: radial-gradient(circle at top, #1e293b, #020617); border: 1px solid rgba(55,65,81,0.9); padding: 8px 8px 10px; transition: all 0.3s ease; }
-    .tile-poster { width: 100%; border-radius: 14px; overflow: hidden; background: radial-gradient(circle at top,#1d4ed8,#020617); margin-bottom: 6px; height: 180px; min-height: 180px; display: flex; align-items: center; justify-content: center; }
-    .tile-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .tile-title { font-size: 12px; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .tile-meta { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    @media (max-width: 768px) { .hero-item { grid-template-columns: minmax(0,1fr); } }
+    .series-card {
+        background: radial-gradient(circle at top, rgba(37, 99, 235, 0.32), #020617);
+        border-radius: 18px;
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        padding: 10px 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .series-poster {
+        border-radius: 16px;
+        overflow: hidden;
+        background: radial-gradient(circle at top, #1d4ed8, #020617);
+        min-height: 160px;
+    }
+    .series-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .series-title {
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .series-meta {
+        font-size: 11px;
+        color: var(--text-muted);
+    }
 </style>
 
 <section class="page-shell">
 
-    <!-- HERO: Latest web series with auto-slider -->
-    <article class="hero-shell">
-        <div class="card-header" style="margin-bottom:10px;">
+    <!-- LATEST WEB SERIES HERO -->
+    <article class="card">
+        <div class="card-header">
             <div>
-                <div class="card-title">Latest web series</div>
-                <div class="card-sub">
+                <h2 class="card-title">Latest web series</h2>
+                <p class="card-sub">
                     Fresh series added to Movies Magic Club · auto-sliding preview · last 5 uploads
-                </div>
+                </p>
             </div>
         </div>
 
-        <div class="hero-slider-wrapper">
+        <div class="hero-shell">
             {% if latest_series and latest_series|length > 0 %}
-                {% for series in latest_series[:5] %}
+                {% set first = latest_series[0] %}
                 <div class="hero-grid">
-                    <div class="hero-item {% if loop.index == 1 %}active{% endif %}" data-slide="{{ loop.index0 }}">
-                        <div class="hero-poster">
-                            {% if series.poster_path %}
-                                <img src="{{ url_for('static', path=series.poster_path) }}"
-                                     alt="{{ series.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="hero-main">
+                    <div class="hero-poster">
+                        {% if first.poster_path %}
+                            <img src="{{ first.poster_path }}" alt="{{ first.title }} Poster">
+                        {% endif %}
+                    </div>
+                    <div class="hero-main">
+                        <div>
                             <div class="hero-title">
-                                {{ series.title }}{% if series.year %} · S1E01{% endif %}
+                                {{ first.title }}
+                                {% if first.year %} · S1E01{% endif %}
                             </div>
                             <div class="hero-meta">
-                                {{ series.year or "" }}{% if series.quality %} · {{ series.quality }}{% endif %}{% if series.category %} · {{ series.category }}{% endif %}
+                                {{ first.year or "" }}
+                                {% if first.quality %} · {{ first.quality }}{% endif %}
+                                {% if first.category %} · {{ first.category }}{% endif %}
                             </div>
-                            <div class="hero-actions">
-                                <a href="/series/{{ series.id }}"
-                                   class="btn-hero-primary">
-                                    ▶ View seasons
-                                </a>
-                                <a href="/series/browse"
-                                   class="btn-hero-secondary">
-                                    Browse all web series
-                                </a>
-                            </div>
+                        </div>
+                        <div class="hero-actions">
+                            <a href="/series/{{ first.id }}" class="btn-primary">
+                                ▶ View seasons
+                            </a>
+                            <a href="/series/browse" class="btn-secondary">
+                                Browse all web series
+                            </a>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
 
-                <div class="hero-dots">
+                <div class="hero-dot-row">
                     {% set count = latest_series|length if latest_series|length < 5 else 5 %}
                     {% for i in range(count) %}
-                        <div class="hero-dot {% if i == 0 %}active{% endif %}" data-index="{{ i }}"></div>
+                        <div class="hero-dot {% if i == 0 %}active{% endif %}"></div>
                     {% endfor %}
                 </div>
             {% else %}
                 <div class="hero-grid">
-                    <div class="hero-item active">
-                        <div class="hero-poster"></div>
-                        <div class="hero-main">
-                            <div class="hero-title">Sample Series · S1E01</div>
-                            <div class="hero-meta">2024 · HD · Web series</div>
-                            <div class="hero-actions">
-                                <a href="/series" class="btn-hero-primary">▶ View seasons</a>
-                                <a href="/series/browse" class="btn-hero-secondary">Browse all web series</a>
-                            </div>
+                    <div class="hero-poster"></div>
+                    <div class="hero-main">
+                        <div class="hero-title">Sample Series · S1E01</div>
+                        <div class="hero-meta">2024 · HD · Web series</div>
+                        <div class="hero-actions">
+                            <a href="/series/browse" class="btn-primary">
+                                ▶ View seasons
+                            </a>
+                            <a href="/series/browse" class="btn-secondary">
+                                Browse all web series
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -171,25 +256,23 @@
         </div>
     </article>
 
-    <!-- GENRE ROW -->
-    <article class="card genre-card">
+    <!-- GENRE BROWSE -->
+    <article class="card">
         <div class="card-header">
             <div>
-                <div class="card-title">Browse by genre</div>
-                <div class="card-sub">
+                <h2 class="card-title">Browse by genre</h2>
+                <p class="card-sub">
                     Tap a genre to see all matching web series.
-                </div>
+                </p>
             </div>
         </div>
-        <div class="genre-row">
-            <a href="/series/browse?genre=Action" class="genre-chip">Action</a>
-            <a href="/series/browse?genre=Comedy" class="genre-chip">Comedy</a>
-            <a href="/series/browse?genre=Drama" class="genre-chip">Drama</a>
-            <a href="/series/browse?genre=Thriller" class="genre-chip">Thriller</a>
-            <a href="/series/browse?genre=Fantasy" class="genre-chip">Fantasy</a>
-            <a href="/series/browse?genre=Sci-Fi" class="genre-chip">Sci‑Fi</a>
-            <a href="/series/browse?genre=Romance" class="genre-chip">Romance</a>
-            <a href="/series/browse?genre=Crime" class="genre-chip">Crime</a>
+
+        <div class="genre-chip-row">
+            {% for g in ["Action", "Comedy", "Drama", "Thriller", "Fantasy", "Sci-Fi", "Romance", "Crime"] %}
+                <a href="/series/browse?genre={{ g }}" class="genre-chip">
+                    {{ g }}
+                </a>
+            {% endfor %}
         </div>
     </article>
 
@@ -197,78 +280,74 @@
     <article class="card">
         <div class="card-header">
             <div>
-                <div class="card-title">Trending web series</div>
-                <div class="card-sub">Popular across Movies Magic Club this week.</div>
+                <h2 class="card-title">Trending web series</h2>
+                <p class="card-sub">
+                    Popular across Movies Magic Club this week.
+                </p>
             </div>
         </div>
-        <div class="horizontal-scroll" style="max-width:420px; margin:0 auto;">
-            {% if latest_series and latest_series|length > 0 %}
-                {% for s in latest_series %}
-                <a href="/series/{{ s.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if s.poster_path %}
-                                <img src="{{ url_for('static', path=s.poster_path) }}"
-                                     alt="{{ s.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ s.title }}</div>
-                        <div class="tile-meta">
-                            {{ s.year or "" }}{% if s.quality %} · {{ s.quality }}{% endif %}{% if s.category %} · {{ s.category }}{% endif %}
-                        </div>
+
+        <div class="row-shell">
+            {% for s in latest_series[:4] %}
+                <article class="series-card">
+                    <a href="/series/{{ s.id }}" class="series-poster">
+                        {% if s.poster_path %}
+                            <img src="{{ s.poster_path }}" alt="{{ s.title }} poster">
+                        {% endif %}
+                    </a>
+                    <a href="/series/{{ s.id }}" class="series-title">
+                        {{ s.title }}
+                    </a>
+                    <div class="series-meta">
+                        {{ s.year or "" }}
+                        {% if s.quality %} · {{ s.quality }}{% endif %}
+                        {% if s.category %} · {{ s.category }}{% endif %}
                     </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(6) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Trending series {{ i+1 }}</div>
-                    <div class="tile-meta">HD · 2024 · Web series</div>
-                </div>
-                {% endfor %}
-            {% endif %}
+                </article>
+            {% endfor %}
         </div>
     </article>
 
-    <!-- ALL WEB SERIES (matches trending layout, scroll, and tile size) -->
+    <!-- ALL WEB SERIES (with See more link) -->
     <article class="card">
         <div class="card-header">
             <div>
-                <div class="card-title">All web series</div>
-                <div class="card-sub">Popular across Movies Magic Club this week.</div>
+                <h2 class="card-title">All web series</h2>
+                <p class="card-sub">
+                    Popular across Movies Magic Club this week.
+                </p>
             </div>
+
+            <!-- New See more link on right side -->
+            <a href="/series/browse" class="card-link">
+                See more →
+            </a>
         </div>
-        <div class="horizontal-scroll" style="max-width:420px; margin:0 auto;">
-            {% if latest_series and latest_series|length > 0 %}
-                {% for s in latest_series %}
-                <a href="/series/{{ s.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if s.poster_path %}
-                                <img src="{{ url_for('static', path=s.poster_path) }}"
-                                     alt="{{ s.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ s.title }}</div>
-                        <div class="tile-meta">
-                            {{ s.year or "" }}{% if s.quality %} · {{ s.quality }}{% endif %}{% if s.category %} · {{ s.category }}{% endif %}
-                        </div>
+
+        <div class="row-shell">
+            {% for s in latest_series %}
+                <article class="series-card">
+                    <a href="/series/{{ s.id }}" class="series-poster">
+                        {% if s.poster_path %}
+                            <img src="{{ s.poster_path }}" alt="{{ s.title }} poster">
+                        {% endif %}
+                    </a>
+                    <a href="/series/{{ s.id }}" class="series-title">
+                        {{ s.title }}
+                    </a>
+                    <div class="series-meta">
+                        {{ s.year or "" }}
+                        {% if s.quality %} · {{ s.quality }}{% endif %}
+                        {% if s.category %} · {{ s.category }}{% endif %}
                     </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(6) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Trending series {{ i+1 }}</div>
-                    <div class="tile-meta">HD · 2024 · Web series</div>
-                </div>
-                {% endfor %}
-            {% endif %}
+                </article>
+            {% endfor %}
         </div>
     </article>
+
 </section>
+{% endblock %}
+ 
 
 <script>
 (function() {
