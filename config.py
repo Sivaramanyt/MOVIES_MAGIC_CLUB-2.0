@@ -13,6 +13,9 @@ VERIFICATION_DEFAULT_VALID_MINUTES = 1440 # 24 hours
 SHORTLINK_API = os.getenv("SHORTLINK_API", "")
 SHORTLINK_URL = os.getenv("SHORTLINK_URL", "")
 
+# Add this line
+BOT_USERNAME = os.getenv("BOT_USERNAME", "your_bot_username")  # Without @
+
 if not API_ID or not API_HASH or not BOT_TOKEN:
     print("❌ Please set API_ID, API_HASH, BOT_TOKEN as env variables")
 
