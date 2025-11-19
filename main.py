@@ -44,6 +44,7 @@ app.include_router(admin_series_seasons_router)
 app.include_router(verify_router)
 app.include_router(admin_episodes_router)
 app.include_router(admin_verification_router)
+app.include_router(support_router)
 
 # ---------- Pyrogram bot ----------
 
