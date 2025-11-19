@@ -161,7 +161,7 @@
         color: #020617; /* dark text on orange background */
     }
 
-    /* Optional: center layout a bit on large screens */
+    /* Optional: center layout on large screens */
     @media (min-width: 1024px) {
         .mmc-shell {
             max-width: 1100px;
@@ -197,16 +197,16 @@
                 <button class="mmc-search-btn" type="submit">🔍</button>
             </form>
 
-            {# Tabs: use 'activetab' from routes (movies / series) #}
-            <div class="mmc-tabs {% if activetab == 'series' %}is-series{% else %}is-movies{% endif %}">
+            {# Tabs: use 'active_tab' from routes (movies / series) #}
+            <div class="mmc-tabs {% if active_tab == 'series' %}is-series{% else %}is-movies{% endif %}">
                 <div class="mmc-tab-highlight"></div>
 
                 <a href="/"
-                   class="mmc-tab {% if activetab != 'series' %}active{% endif %}">
+                   class="mmc-tab {% if active_tab != 'series' %}active{% endif %}">
                     Movies
                 </a>
                 <a href="/series"
-                   class="mmc-tab {% if activetab == 'series' %}active{% endif %}">
+                   class="mmc-tab {% if active_tab == 'series' %}active{% endif %}">
                     Series
                 </a>
             </div>
