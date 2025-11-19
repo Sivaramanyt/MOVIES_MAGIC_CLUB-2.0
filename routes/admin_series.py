@@ -6,16 +6,12 @@ from typing import List, Optional
 from pathlib import Path
 
 from bson import ObjectId
-
 from fastapi import APIRouter, Request, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from db import get_db
-from verification_utils import (
-    should_require_verification,
-    increment_free_used,
-)
+from verification_utils import should_require_verification, increment_free_used
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -54,8 +50,10 @@ def _series_to_ctx(doc: dict) -> dict:
         "id": str(doc.get("_id")),
         "title": doc.get("title", "Untitled series"),
         "year": doc.get("year"),
+        "quality": doc.get("quality"),
         "language": primary_language,
         "poster_path": doc.get("poster_path"),
+        "category": doc.get("category"),
         "description": doc.get("description", ""),
         "languages": languages,
         "audio": audio_text,
@@ -112,7 +110,6 @@ async def series_detail(request: Request, series_id: str):
         )
 
     series_ctx = _series_to_ctx(series_doc)
-
     return templates.TemplateResponse(
         "series_detail.html",
         {
@@ -262,15 +259,10 @@ async def admin_series_create(
     # Handle poster upload
     poster_path = None
     if poster and poster.filename:
-        # Create safe filename
         safe_filename = f"{title.strip().replace(' ', '_')}_{poster.filename}"
         dest = POSTER_DIR / safe_filename
-        
-        # Save file
         with dest.open("wb") as f:
             shutil.copyfileobj(poster.file, f)
-        
-        # Store relative path for templates
         poster_path = f"posters/{safe_filename}"
 
     doc = {
@@ -290,19 +282,99 @@ async def admin_series_create(
 
     await db["series"].insert_one(doc)
 
-    # Reload list after insert
-    col = db["series"]
-    cursor = col.find().sort("_id", -1)
-    docs = await cursor.to_list(length=100)
-    series_list = [_series_to_ctx(d) for d in docs]
+    return RedirectResponse(url="/admin/series", status_code=303)
+
+
+# ---------- ADMIN: EDIT SERIES ----------
+
+@router.get("/admin/series/{series_id}/edit", response_class=HTMLResponse)
+async def admin_series_edit_form(request: Request, series_id: str):
+    db = get_db()
+    if db is None:
+        return RedirectResponse(url="/admin/series", status_code=303)
+
+    try:
+        oid = ObjectId(series_id)
+    except Exception:
+        return RedirectResponse(url="/admin/series", status_code=303)
+
+    doc = await db["series"].find_one({"_id": oid})
+    if not doc:
+        return RedirectResponse(url="/admin/series", status_code=303)
+
+    series_ctx = _series_to_ctx(doc)
 
     return templates.TemplateResponse(
-        "admin_series.html",
+        "admin_edit_series.html",
         {
             "request": request,
-            "series_list": series_list,
-            "message": "✅ Series added successfully with poster!",
+            "series": series_ctx,
             "active_tab": "series_admin",
         },
     )
-    
+
+
+@router.post("/admin/series/{series_id}/edit")
+async def admin_series_edit_submit(
+    request: Request,
+    series_id: str,
+    title: str = Form(...),
+    year: str = Form(""),
+    quality: str = Form(""),
+    category: str = Form(""),
+    languages: List[str] = Form([]),
+    description: str = Form(""),
+    poster: UploadFile = File(None),
+):
+    db = get_db()
+    if db is None:
+        return RedirectResponse(url="/admin/series", status_code=303)
+
+    try:
+        oid = ObjectId(series_id)
+    except Exception:
+        return RedirectResponse(url="/admin/series", status_code=303)
+
+    update_doc = {
+        "title": title.strip(),
+        "year": year.strip() or None,
+        "quality": quality.strip() or None,
+        "category": category.strip() or None,
+        "languages": languages,
+        "description": description.strip(),
+    }
+
+    if languages:
+        update_doc["language"] = languages[0]
+
+    # Optional: handle new poster upload
+    if poster and poster.filename:
+        safe_filename = f"{title.strip().replace(' ', '_')}_{poster.filename}"
+        dest = POSTER_DIR / safe_filename
+        with dest.open("wb") as f:
+            shutil.copyfileobj(poster.file, f)
+        poster_path = f"posters/{safe_filename}"
+        update_doc["poster_path"] = poster_path
+
+    await db["series"].update_one({"_id": oid}, {"$set": update_doc})
+
+    return RedirectResponse(url="/admin/series", status_code=303)
+
+
+# ---------- ADMIN: DELETE SERIES ----------
+
+@router.post("/admin/series/{series_id}/delete")
+async def admin_series_delete(series_id: str):
+    db = get_db()
+    if db is None:
+        return RedirectResponse(url="/admin/series", status_code=303)
+
+    try:
+        oid = ObjectId(series_id)
+    except Exception:
+        return RedirectResponse(url="/admin/series", status_code=303)
+
+    await db["series"].delete_one({"_id": oid})
+
+    return RedirectResponse(url="/admin/series", status_code=303)
+        
