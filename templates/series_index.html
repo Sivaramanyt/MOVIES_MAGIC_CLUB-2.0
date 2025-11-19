@@ -40,7 +40,7 @@
         text-decoration: none;
     }
 
-    /* HERO SLIDER */
+    /* HERO SLIDER - UPDATED */
 
     .hero-shell {
         position: relative;
@@ -49,6 +49,11 @@
         background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.25), rgba(15, 23, 42, 0.98));
         border: 1px solid rgba(55, 65, 81, 0.9);
         padding: 14px 14px 16px;
+    }
+
+    .hero-slider-wrapper {
+        position: relative;
+        min-height: 200px;
     }
 
     .hero-grid {
@@ -62,6 +67,19 @@
         grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
         gap: 12px;
         align-items: center;
+        opacity: 0;
+        position: absolute;
+        width: 100%;
+        top: 0;
+        left: 0;
+        transition: opacity 0.6s ease-in-out;
+        pointer-events: none;
+    }
+
+    .hero-item.active {
+        opacity: 1;
+        position: relative;
+        pointer-events: auto;
     }
 
     .hero-poster {
@@ -140,10 +158,17 @@
         height: 3px;
         border-radius: 999px;
         background: rgba(148, 163, 184, 0.6);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .hero-dot:hover {
+        background: rgba(249, 115, 22, 0.7);
     }
 
     .hero-dot.active {
         background: #f97316;
+        width: 24px;
     }
 
     /* GENRE CHIPS */
@@ -241,58 +266,61 @@
             </div>
         </div>
 
-        {% if latest_series and latest_series|length > 0 %}
-            {% set first = latest_series[0] %}
-            <div class="hero-grid">
-                <div class="hero-item">
-                    <div class="hero-poster">
-                        {% if first.poster_path %}
-                            <img src="{{ url_for('static', path=first.poster_path) }}"
-                                 alt="{{ first.title }} poster">
-                        {% endif %}
-                    </div>
-                    <div class="hero-main">
-                        <div class="hero-title">
-                            {{ first.title }}{% if first.year %} · S1E01{% endif %}
+        <div class="hero-slider-wrapper">
+            {% if latest_series and latest_series|length > 0 %}
+                {% for series in latest_series[:5] %}
+                <div class="hero-grid">
+                    <div class="hero-item {% if loop.index == 1 %}active{% endif %}" data-slide="{{ loop.index0 }}">
+                        <div class="hero-poster">
+                            {% if series.poster_path %}
+                                <img src="{{ url_for('static', path=series.poster_path) }}"
+                                     alt="{{ series.title }} poster">
+                            {% endif %}
                         </div>
-                        <div class="hero-meta">
-                            {{ first.year or "" }}{% if first.quality %} · {{ first.quality }}{% endif %}{% if first.category %} · {{ first.category }}{% endif %}
-                        </div>
-                        <div class="hero-actions">
-                            <a href="/series/{{ first.id }}"
-                               class="btn-hero-primary">
-                                ▶ View seasons
-                            </a>
-                            <a href="/series/browse"
-                               class="btn-hero-secondary">
-                                Browse all web series
-                            </a>
+                        <div class="hero-main">
+                            <div class="hero-title">
+                                {{ series.title }}{% if series.year %} · S1E01{% endif %}
+                            </div>
+                            <div class="hero-meta">
+                                {{ series.year or "" }}{% if series.quality %} · {{ series.quality }}{% endif %}{% if series.category %} · {{ series.category }}{% endif %}
+                            </div>
+                            <div class="hero-actions">
+                                <a href="/series/{{ series.id }}"
+                                   class="btn-hero-primary">
+                                    ▶ View seasons
+                                </a>
+                                <a href="/series/browse"
+                                   class="btn-hero-secondary">
+                                    Browse all web series
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="hero-dots">
-                {% set count = latest_series|length if latest_series|length < 5 else 5 %}
-                {% for i in range(count) %}
-                    <div class="hero-dot {% if i == 0 %}active{% endif %}"></div>
                 {% endfor %}
-            </div>
-        {% else %}
-            <div class="hero-grid">
-                <div class="hero-item">
-                    <div class="hero-poster"></div>
-                    <div class="hero-main">
-                        <div class="hero-title">Sample Series · S1E01</div>
-                        <div class="hero-meta">2024 · HD · Web series</div>
-                        <div class="hero-actions">
-                            <a href="/series" class="btn-hero-primary">▶ View seasons</a>
-                            <a href="/series/browse" class="btn-hero-secondary">Browse all web series</a>
+
+                <div class="hero-dots">
+                    {% set count = latest_series|length if latest_series|length < 5 else 5 %}
+                    {% for i in range(count) %}
+                        <div class="hero-dot {% if i == 0 %}active{% endif %}" data-index="{{ i }}"></div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="hero-grid">
+                    <div class="hero-item active">
+                        <div class="hero-poster"></div>
+                        <div class="hero-main">
+                            <div class="hero-title">Sample Series · S1E01</div>
+                            <div class="hero-meta">2024 · HD · Web series</div>
+                            <div class="hero-actions">
+                                <a href="/series" class="btn-hero-primary">▶ View seasons</a>
+                                <a href="/series/browse" class="btn-hero-secondary">Browse all web series</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </article>
 
     <!-- GENRE ROW -->
@@ -399,5 +427,132 @@
     </article>
 
 </section>
+
+<script>
+// Hero Auto-Slider JavaScript - Fully functional
+(function() {
+    const heroItems = document.querySelectorAll('.hero-item');
+    const dots = document.querySelectorAll('.hero-dot');
+    let currentSlide = 0;
+    let autoSlideInterval;
+    const slideDelay = 5000; // 5 seconds auto-slide
+
+    // Check if we have multiple slides
+    if (heroItems.length <= 1) {
+        console.log('Only one slide, auto-slider disabled');
+        return;
+    }
+
+    console.log(`Hero slider initialized with ${heroItems.length} slides`);
+
+    function showSlide(index) {
+        // Ensure index is within bounds
+        if (index < 0) index = heroItems.length - 1;
+        if (index >= heroItems.length) index = 0;
+
+        // Remove active class from all items and dots
+        heroItems.forEach(item => item.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+
+        // Add active class to current slide
+        if (heroItems[index]) {
+            heroItems[index].classList.add('active');
+        }
+        if (dots[index]) {
+            dots[index].classList.add('active');
+        }
+
+        currentSlide = index;
+        console.log(`Showing slide ${index + 1}/${heroItems.length}`);
+    }
+
+    function nextSlide() {
+        let next = (currentSlide + 1) % heroItems.length;
+        showSlide(next);
+    }
+
+    function prevSlide() {
+        let prev = (currentSlide - 1 + heroItems.length) % heroItems.length;
+        showSlide(prev);
+    }
+
+    function startAutoSlide() {
+        stopAutoSlide(); // Clear any existing interval
+        autoSlideInterval = setInterval(nextSlide, slideDelay);
+        console.log('Auto-slide started');
+    }
+
+    function stopAutoSlide() {
+        if (autoSlideInterval) {
+            clearInterval(autoSlideInterval);
+            console.log('Auto-slide stopped');
+        }
+    }
+
+    // Dot click navigation
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            console.log(`Dot ${index + 1} clicked`);
+            showSlide(index);
+            stopAutoSlide();
+            startAutoSlide(); // Restart auto-slide after manual navigation
+        });
+    });
+
+    // Pause on hover (desktop)
+    const heroShell = document.querySelector('.hero-shell');
+    if (heroShell) {
+        heroShell.addEventListener('mouseenter', () => {
+            stopAutoSlide();
+            console.log('Mouse hover - paused');
+        });
+        heroShell.addEventListener('mouseleave', () => {
+            startAutoSlide();
+            console.log('Mouse leave - resumed');
+        });
+    }
+
+    // Touch swipe support for mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const minSwipeDistance = 50;
+
+    if (heroShell) {
+        heroShell.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        heroShell.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+    }
+
+    function handleSwipe() {
+        const swipeDistance = touchEndX - touchStartX;
+        
+        if (Math.abs(swipeDistance) < minSwipeDistance) {
+            return; // Not a valid swipe
+        }
+
+        if (swipeDistance < 0) {
+            // Swipe left - next slide
+            console.log('Swiped left');
+            nextSlide();
+        } else {
+            // Swipe right - previous slide
+            console.log('Swiped right');
+            prevSlide();
+        }
+        
+        stopAutoSlide();
+        startAutoSlide();
+    }
+
+    // Start auto-slide on page load
+    startAutoSlide();
+    console.log('Hero slider ready!');
+})();
+</script>
 {% endblock %}
-            
+    
