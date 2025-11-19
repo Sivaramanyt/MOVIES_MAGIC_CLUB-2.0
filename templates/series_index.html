@@ -202,7 +202,7 @@
         border-color: rgba(59, 130, 246, 0.7);
     }
 
-    /* HORIZONTAL LISTS - OPTIMIZED */
+    /* HORIZONTAL LISTS - OPTIMIZED DIMENSIONS */
 
     .horizontal-scroll {
         display: flex;
@@ -233,7 +233,7 @@
     }
 
     .tile {
-        flex: 0 0 170px;
+        flex: 0 0 135px;
         border-radius: 18px;
         background: radial-gradient(circle at top, #1e293b, #020617);
         border: 1px solid rgba(55, 65, 81, 0.9);
@@ -259,8 +259,8 @@
         overflow: hidden;
         background: radial-gradient(circle at top, #1d4ed8, #020617);
         margin-bottom: 6px;
-        height: 220px;
-        min-height: 220px;
+        height: 180px;
+        min-height: 180px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -479,14 +479,9 @@
     const dots = document.querySelectorAll('.hero-dot');
     let currentSlide = 0;
     let autoSlideInterval;
-    const slideDelay = 5000; // 5 seconds
+    const slideDelay = 5000;
 
-    if (heroItems.length <= 1) {
-        console.log('Only one slide, auto-slider disabled');
-        return;
-    }
-
-    console.log(`Hero slider initialized with ${heroItems.length} slides`);
+    if (heroItems.length <= 1) return;
 
     function showSlide(index) {
         if (index < 0) index = heroItems.length - 1;
@@ -495,67 +490,45 @@
         heroItems.forEach(item => item.classList.remove('active'));
         dots.forEach(dot => dot.classList.remove('active'));
 
-        if (heroItems[index]) {
-            heroItems[index].classList.add('active');
-        }
-        if (dots[index]) {
-            dots[index].classList.add('active');
-        }
+        if (heroItems[index]) heroItems[index].classList.add('active');
+        if (dots[index]) dots[index].classList.add('active');
 
         currentSlide = index;
-        console.log(`Showing slide ${index + 1}/${heroItems.length}`);
     }
 
     function nextSlide() {
-        let next = (currentSlide + 1) % heroItems.length;
-        showSlide(next);
+        showSlide((currentSlide + 1) % heroItems.length);
     }
 
     function prevSlide() {
-        let prev = (currentSlide - 1 + heroItems.length) % heroItems.length;
-        showSlide(prev);
+        showSlide((currentSlide - 1 + heroItems.length) % heroItems.length);
     }
 
     function startAutoSlide() {
         stopAutoSlide();
         autoSlideInterval = setInterval(nextSlide, slideDelay);
-        console.log('Auto-slide started');
     }
 
     function stopAutoSlide() {
-        if (autoSlideInterval) {
-            clearInterval(autoSlideInterval);
-            console.log('Auto-slide stopped');
-        }
+        if (autoSlideInterval) clearInterval(autoSlideInterval);
     }
 
-    // Dot click navigation
     dots.forEach((dot, index) => {
         dot.addEventListener('click', () => {
-            console.log(`Dot ${index + 1} clicked`);
             showSlide(index);
             stopAutoSlide();
             startAutoSlide();
         });
     });
 
-    // Pause on hover
     const heroShell = document.querySelector('.hero-shell');
     if (heroShell) {
-        heroShell.addEventListener('mouseenter', () => {
-            stopAutoSlide();
-            console.log('Mouse hover - paused');
-        });
-        heroShell.addEventListener('mouseleave', () => {
-            startAutoSlide();
-            console.log('Mouse leave - resumed');
-        });
+        heroShell.addEventListener('mouseenter', stopAutoSlide);
+        heroShell.addEventListener('mouseleave', startAutoSlide);
     }
 
-    // Touch swipe support
     let touchStartX = 0;
     let touchEndX = 0;
-    const minSwipeDistance = 50;
 
     if (heroShell) {
         heroShell.addEventListener('touchstart', (e) => {
@@ -564,32 +537,18 @@
 
         heroShell.addEventListener('touchend', (e) => {
             touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
+            const swipeDistance = touchEndX - touchStartX;
+            
+            if (Math.abs(swipeDistance) >= 50) {
+                if (swipeDistance < 0) nextSlide();
+                else prevSlide();
+                stopAutoSlide();
+                startAutoSlide();
+            }
         }, { passive: true });
     }
 
-    function handleSwipe() {
-        const swipeDistance = touchEndX - touchStartX;
-        
-        if (Math.abs(swipeDistance) < minSwipeDistance) {
-            return;
-        }
-
-        if (swipeDistance < 0) {
-            console.log('Swiped left');
-            nextSlide();
-        } else {
-            console.log('Swiped right');
-            prevSlide();
-        }
-        
-        stopAutoSlide();
-        startAutoSlide();
-    }
-
-    // Start auto-slide
     startAutoSlide();
-    console.log('Hero slider ready!');
 })();
 </script>
 {% endblock %}
