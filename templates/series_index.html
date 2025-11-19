@@ -45,21 +45,18 @@
         border: 1px solid rgba(55, 65, 81, 0.9);
         padding: 14px 14px 16px;
     }
-    .hero-grid {
+    .hero-slide {
+        display: none;
+    }
+    .hero-slide.active {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
         gap: 10px;
     }
     @media (min-width: 720px) {
-        .hero-grid {
+        .hero-slide.active {
             grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
         }
-    }
-    .hero-item {
-        display: grid;
-        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
-        gap: 12px;
-        align-items: center;
     }
     .hero-poster {
         border-radius: 22px;
@@ -128,6 +125,9 @@
         height: 3px;
         border-radius: 999px;
         background: rgba(148, 163, 184, 0.35);
+        border: none;
+        padding: 0;
+        cursor: pointer;
     }
     .hero-dot.active {
         background: #f97316;
@@ -148,7 +148,7 @@
         text-decoration: none;
     }
 
-    /* CAROUSEL ROWS FOR TRENDING + ALL */
+    /* CARDS IN TRENDING + ALL */
     .row-shell {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -187,7 +187,7 @@
 
 <section class="page-shell">
 
-    <!-- LATEST WEB SERIES HERO -->
+    <!-- LATEST WEB SERIES HERO (AUTO SLIDER) -->
     <article class="card">
         <div class="card-header">
             <div>
@@ -198,46 +198,49 @@
             </div>
         </div>
 
-        <div class="hero-shell">
+        <div class="hero-shell" id="hero-slider">
             {% if latest_series and latest_series|length > 0 %}
-                {% set first = latest_series[0] %}
-                <div class="hero-grid">
-                    <div class="hero-poster">
-                        {% if first.poster_path %}
-                            <img src="{{ first.poster_path }}" alt="{{ first.title }} Poster">
-                        {% endif %}
-                    </div>
-                    <div class="hero-main">
-                        <div>
-                            <div class="hero-title">
-                                {{ first.title }}
-                                {% if first.year %} · S1E01{% endif %}
+                {% set max_count = 5 %}
+                {% set count = latest_series|length if latest_series|length < max_count else max_count %}
+
+                {% for s in latest_series[:max_count] %}
+                    <div class="hero-slide {% if loop.index0 == 0 %}active{% endif %}" data-index="{{ loop.index0 }}">
+                        <div class="hero-poster">
+                            {% if s.poster_path %}
+                                <img src="{{ s.poster_path }}" alt="{{ s.title }} Poster">
+                            {% endif %}
+                        </div>
+                        <div class="hero-main">
+                            <div>
+                                <div class="hero-title">
+                                    {{ s.title }}
+                                    {% if s.year %} · S1E01{% endif %}
+                                </div>
+                                <div class="hero-meta">
+                                    {{ s.year or "" }}
+                                    {% if s.quality %} · {{ s.quality }}{% endif %}
+                                    {% if s.category %} · {{ s.category }}{% endif %}
+                                </div>
                             </div>
-                            <div class="hero-meta">
-                                {{ first.year or "" }}
-                                {% if first.quality %} · {{ first.quality }}{% endif %}
-                                {% if first.category %} · {{ first.category }}{% endif %}
+                            <div class="hero-actions">
+                                <a href="/series/{{ s.id }}" class="btn-primary">
+                                    ▶ View seasons
+                                </a>
+                                <a href="/series/browse" class="btn-secondary">
+                                    Browse all web series
+                                </a>
                             </div>
                         </div>
-                        <div class="hero-actions">
-                            <a href="/series/{{ first.id }}" class="btn-primary">
-                                ▶ View seasons
-                            </a>
-                            <a href="/series/browse" class="btn-secondary">
-                                Browse all web series
-                            </a>
-                        </div>
                     </div>
-                </div>
+                {% endfor %}
 
                 <div class="hero-dot-row">
-                    {% set count = latest_series|length if latest_series|length < 5 else 5 %}
                     {% for i in range(count) %}
-                        <div class="hero-dot {% if i == 0 %}active{% endif %}"></div>
+                        <button class="hero-dot {% if i == 0 %}active{% endif %}" data-index="{{ i }}"></button>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="hero-grid">
+                <div class="hero-slide active">
                     <div class="hero-poster"></div>
                     <div class="hero-main">
                         <div class="hero-title">Sample Series · S1E01</div>
@@ -308,7 +311,7 @@
         </div>
     </article>
 
-    <!-- ALL WEB SERIES (with See more link) -->
+    <!-- ALL WEB SERIES (with See more) -->
     <article class="card">
         <div class="card-header">
             <div>
@@ -318,7 +321,6 @@
                 </p>
             </div>
 
-            <!-- New See more link on right side -->
             <a href="/series/browse" class="card-link">
                 See more →
             </a>
@@ -346,43 +348,34 @@
     </article>
 
 </section>
-{% endblock %}
- 
 
 <script>
-(function() {
-    const heroItems = document.querySelectorAll('.hero-item');
-    const dots = document.querySelectorAll('.hero-dot');
-    let currentSlide = 0, autoSlideInterval;
-    const slideDelay = 5000;
-    if (heroItems.length <= 1) return;
-    function showSlide(i) {
-        if (i < 0) i = heroItems.length-1; if (i >= heroItems.length) i=0;
-        heroItems.forEach(item=>item.classList.remove('active'));
-        dots.forEach(dot=>dot.classList.remove('active'));
-        if(heroItems[i])heroItems[i].classList.add('active');
-        if(dots[i])dots[i].classList.add('active'); currentSlide=i;
+(function () {
+    const slider = document.getElementById('hero-slider');
+    if (!slider) return;
+
+    const slides = slider.querySelectorAll('.hero-slide');
+    const dots = slider.querySelectorAll('.hero-dot');
+    if (slides.length <= 1) return;
+
+    let index = 0;
+
+    function show(i) {
+        slides[index].classList.remove('active');
+        dots[index].classList.remove('active');
+        index = i;
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
     }
-    function nextSlide() { showSlide((currentSlide+1)%heroItems.length);}
-    function prevSlide() { showSlide((currentSlide-1+heroItems.length)%heroItems.length);}
-    function startAutoSlide() { stopAutoSlide(); autoSlideInterval=setInterval(nextSlide,slideDelay);}
-    function stopAutoSlide() { if(autoSlideInterval)clearInterval(autoSlideInterval);}
-    dots.forEach((dot,i)=>{dot.addEventListener('click',()=>{showSlide(i);stopAutoSlide();startAutoSlide();});});
-    const heroShell=document.querySelector('.hero-shell');
-    if(heroShell){
-        heroShell.addEventListener('mouseenter',stopAutoSlide);
-        heroShell.addEventListener('mouseleave',startAutoSlide);
-    }
-    let tsX=0,teX=0;
-    if(heroShell){
-        heroShell.addEventListener('touchstart',(e)=>{tsX=e.changedTouches[0].screenX;},{passive:true});
-        heroShell.addEventListener('touchend',(e)=>{
-            teX=e.changedTouches[0].screenX;
-            if(Math.abs(teX-tsX)>=50){if(teX<tsX)nextSlide();else prevSlide();stopAutoSlide();startAutoSlide();}
-        },{passive:true});
-    }
-    startAutoSlide();
+
+    dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => show(i));
+    });
+
+    setInterval(() => {
+        const next = (index + 1) % slides.length;
+        show(next);
+    }, 5000); // 5 seconds
 })();
 </script>
 {% endblock %}
-    
