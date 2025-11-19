@@ -1,10 +1,13 @@
-# routes/admin_series.py (public series pages + episode-wise watch/download)
+# routes/admin_series.py
 
+import os
+import shutil
 from typing import List, Optional
+from pathlib import Path
 
 from bson import ObjectId
 
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -15,8 +18,11 @@ from verification_utils import (
 )
 
 router = APIRouter()
-
 templates = Jinja2Templates(directory="templates")
+
+# Poster upload directory
+POSTER_DIR = Path("static/posters")
+POSTER_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _series_to_ctx(doc: dict) -> dict:
@@ -234,12 +240,13 @@ async def admin_series_create(
     year: str = Form(""),
     quality: str = Form(""),
     category: str = Form(""),
-    poster_path: str = Form(""),
     languages: List[str] = Form([]),
     description: str = Form(""),
+    poster: UploadFile = File(None),
 ):
     """
     Handle 'Save series' form from admin_series.html.
+    Now supports poster file upload.
     """
     db = get_db()
     if db is None:
@@ -252,16 +259,34 @@ async def admin_series_create(
             },
         )
 
+    # Handle poster upload
+    poster_path = None
+    if poster and poster.filename:
+        # Create safe filename
+        safe_filename = f"{title.strip().replace(' ', '_')}_{poster.filename}"
+        dest = POSTER_DIR / safe_filename
+        
+        # Save file
+        with dest.open("wb") as f:
+            shutil.copyfileobj(poster.file, f)
+        
+        # Store relative path for templates
+        poster_path = f"posters/{safe_filename}"
+
     doc = {
         "title": title.strip(),
         "year": year.strip() or None,
         "quality": quality.strip() or None,
         "category": category.strip() or None,
-        "poster_path": poster_path.strip() or None,
+        "poster_path": poster_path,
         "languages": languages,
         "description": description.strip(),
         "episodes": [],  # seasons/episodes will be added later
     }
+
+    # Set primary language field from languages list
+    if languages:
+        doc["language"] = languages[0]
 
     await db["series"].insert_one(doc)
 
@@ -276,8 +301,8 @@ async def admin_series_create(
         {
             "request": request,
             "series_list": series_list,
-            "message": "✅ Series added successfully!",
+            "message": "✅ Series added successfully with poster!",
             "active_tab": "series_admin",
         },
-                       )
-            
+    )
+    
