@@ -2,13 +2,10 @@
 
 import os
 import asyncio
-
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
-
 from pyrogram import Client, filters, idle
-
 from db import connect_to_mongo, close_mongo_connection
 from routes.movies import router as movies_router
 from routes.web import router as web_router
@@ -23,11 +20,21 @@ from routes.admin_verification import router as admin_verification_router
 from routes.support import router as support_router
 from routes.legal import router as legal_router
 from routes.quality import router as quality_router
-from config import API_ID, API_HASH, BOT_TOKEN  # from config.py
+from config import API_ID, API_HASH, BOT_TOKEN
 
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-this-secret")
 
-app = FastAPI()
+# ✅ CRITICAL: Add lifespan for proper startup/shutdown
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    await connect_to_mongo()
+    asyncio.create_task(run_bot())
+    yield
+    # Shutdown
+    await close_mongo_connection()
+
+app = FastAPI(lifespan=lifespan)
 
 # sessions
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
@@ -51,15 +58,13 @@ app.include_router(legal_router)
 app.include_router(quality_router)
 
 # ---------- Pyrogram bot ----------
-
 bot = Client(
     "movie_webapp_bot",
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
-    in_memory=True,  # session stored in RAM, no sqlite file
+    in_memory=True, # session stored in RAM, no sqlite file
 )
-
 
 @bot.on_message(filters.command("start") & filters.private)
 async def start_command(client, message):
@@ -70,7 +75,6 @@ async def start_command(client, message):
     )
     await message.reply_text(text)
 
-
 async def run_bot():
     await bot.start()
     print("✅ Pyrogram bot started")
@@ -78,23 +82,8 @@ async def run_bot():
     await bot.stop()
     print("🛑 Pyrogram bot stopped")
 
-
-@app.on_event("startup")
-async def on_startup():
-    await connect_to_mongo()
-    asyncio.create_task(run_bot())
-    print("🚀 FastAPI app startup complete")
-
-
-@app.on_event("shutdown")
-async def on_shutdown():
-    await close_mongo_connection()
-    print("🔻 FastAPI app shutting down")
-
-
 if __name__ == "__main__":
     import uvicorn
-
     port = int(os.getenv("PORT", "8000"))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
-    
+                
