@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .legal-container {
+        margin-top: 12px;
+        padding: 16px;
+    }
+    
+    .legal-card {
+        background: rgba(15, 23, 42, 0.96);
+        border-radius: 24px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        padding: 24px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .legal-header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    
+    .legal-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, #06b6d4, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .legal-subtitle {
+        font-size: 13px;
+        color: rgba(229, 231, 235, 0.7);
+    }
+    
+    .legal-content {
+        line-height: 1.8;
+        font-size: 14px;
+    }
+    
+    .legal-content h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 24px 0 12px 0;
+        color: #06b6d4;
+    }
+    
+    .legal-content p {
+        margin-bottom: 16px;
+        color: rgba(229, 231, 235, 0.9);
+    }
+    
+    .legal-content ul {
+        margin: 12px 0;
+        padding-left: 24px;
+    }
+    
+    .legal-content li {
+        margin-bottom: 8px;
+        color: rgba(229, 231, 235, 0.9);
+    }
+    
+    .legal-highlight {
+        background: rgba(6, 182, 212, 0.1);
+        border-left: 3px solid #06b6d4;
+        padding: 16px;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+</style>
+
+<div class="legal-container">
+    <div class="legal-card">
+        <div class="legal-header">
+            <h1 class="legal-title">🔒 Privacy Policy</h1>
+            <p class="legal-subtitle">Last updated: November 20, 2025</p>
+        </div>
+        
+        <div class="legal-content">
+            <p>
+                At Movies Magic Club, we respect your privacy and are committed to protecting your personal 
+                information. This Privacy Policy explains how we collect, use, and safeguard your data when 
+                you use our website.
+            </p>
+            
+            <h2>Information We Collect</h2>
+            
+            <h3 style="font-size: 16px; color: rgba(229, 231, 235, 0.9); margin-top: 16px;">1. Automatically Collected Information</h3>
+            <ul>
+                <li><strong>IP Address:</strong> For security and analytics purposes</li>
+                <li><strong>Browser Information:</strong> Browser type, version, and operating system</li>
+                <li><strong>Device Information:</strong> Device type and screen resolution</li>
+                <li><strong>Usage Data:</strong> Pages visited, time spent, and navigation patterns</li>
+                <li><strong>Cookies:</strong> Session cookies for website functionality</li>
+            </ul>
+            
+            <h3 style="font-size: 16px; color: rgba(229, 231, 235, 0.9); margin-top: 16px;">2. Voluntarily Provided Information</h3>
+            <ul>
+                <li><strong>Support Messages:</strong> Name, email, Telegram username (optional)</li>
+                <li><strong>Search Queries:</strong> Movie/series search terms</li>
+                <li><strong>Verification Data:</strong> Temporary verification tokens</li>
+            </ul>
+            
+            <h2>How We Use Your Information</h2>
+            <p>We use collected information for the following purposes:</p>
+            <ul>
+                <li>To provide and improve our website services</li>
+                <li>To personalize user experience</li>
+                <li>To respond to support inquiries</li>
+                <li>To analyze website usage and trends</li>
+                <li>To prevent fraud and abuse</li>
+                <li>To comply with legal obligations</li>
+            </ul>
+            
+            <h2>Data Storage and Security</h2>
+            <div class="legal-highlight">
+                <p><strong>MongoDB Database:</strong> We store minimal user data in our MongoDB database, including:</p>
+                <ul>
+                    <li>Support messages and contact information</li>
+                    <li>Verification tokens (temporary, expire after 24 hours)</li>
+                    <li>Website usage statistics (anonymized)</li>
+                </ul>
+            </div>
+            
+            <p>
+                We implement industry-standard security measures to protect your data, including:
+            </p>
+            <ul>
+                <li>Encrypted database connections</li>
+                <li>Secure HTTPS protocol</li>
+                <li>Access controls and authentication</li>
+                <li>Regular security audits</li>
+            </ul>
+            
+            <h2>Cookies</h2>
+            <p>
+                We use session cookies to maintain user sessions and improve website functionality. These 
+                cookies are essential for:
+            </p>
+            <ul>
+                <li>Authentication and admin access</li>
+                <li>Verification status tracking</li>
+                <li>User preferences</li>
+                <li>Security features</li>
+            </ul>
+            
+            <h2>Third-Party Services</h2>
+            <p>
+                Our website may link to or embed content from third-party services (streaming platforms). 
+                These services have their own privacy policies, and we are not responsible for their data 
+                practices. We recommend reviewing their policies before using their services.
+            </p>
+            
+            <h2>Data Retention</h2>
+            <ul>
+                <li><strong>Support Messages:</strong> Retained until resolved, then archived</li>
+                <li><strong>Verification Tokens:</strong> Automatically deleted after 24 hours</li>
+                <li><strong>Usage Logs:</strong> Retained for 30 days for analytics</li>
+                <li><strong>IP Addresses:</strong> Logged temporarily for security purposes</li>
+            </ul>
+            
+            <h2>Your Rights</h2>
+            <p>You have the right to:</p>
+            <ul>
+                <li>Access your personal data we hold</li>
+                <li>Request correction of inaccurate data</li>
+                <li>Request deletion of your data</li>
+                <li>Opt-out of data collection (where applicable)</li>
+                <li>Withdraw consent at any time</li>
+            </ul>
+            
+            <h2>Children's Privacy</h2>
+            <p>
+                Our website is not intended for users under 13 years of age. We do not knowingly collect 
+                personal information from children. If you are a parent and believe your child has provided 
+                us with personal information, please contact us immediately.
+            </p>
+            
+            <h2>Changes to This Policy</h2>
+            <p>
+                We may update this Privacy Policy from time to time. Changes will be posted on this page 
+                with an updated revision date. Continued use of the website after changes constitutes 
+                acceptance of the updated policy.
+            </p>
+            
+            <h2>Contact Us</h2>
+            <p>
+                For privacy concerns, data access requests, or questions about this policy, please contact 
+                us through our support channel.
+            </p>
+            
+            <div class="legal-highlight">
+                <p style="margin: 0; font-weight: 600;">
+                    📧 Use the Support button (💬) to contact us about privacy matters.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
