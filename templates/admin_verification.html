@@ -197,9 +197,15 @@
     {% endif %}
     
     <div class="admin-tabs">
-        <a href="/admin/movies" class="admin-tab movies">🎬 Movies</a>
-        <a href="/admin/series" class="admin-tab series">📺 Series</a>
-        <a href="/admin/verification" class="admin-tab verification">✅ Verification</a>
+        <a href="/admin/movies" class="admin-tab movies">
+            🎬 Movies
+        </a>
+        <a href="/admin/series" class="admin-tab series">
+            📺 Series
+        </a>
+        <a href="/admin/verification" class="admin-tab verification">
+            ✅ Verification
+        </a>
     </div>
     
     {% if verifications %}
@@ -213,7 +219,6 @@
             
             <div class="verification-info">
                 <h3>{{ verification.title }}</h3>
-                
                 <div class="verification-meta">
                     <span>🎬 {{ verification.type|title }}</span>
                     <span>🌐 {{ verification.language }}</span>
@@ -240,12 +245,16 @@
             
             <div class="verification-actions">
                 <form method="post" action="/admin/verification/approve/{{ verification.id }}" style="display: inline;">
-                    <button type="submit" class="action-btn approve-btn">✓ Approve</button>
+                    <button type="submit" class="action-btn approve-btn">
+                        ✓ Approve
+                    </button>
                 </form>
                 
                 <form method="post" action="/admin/verification/reject/{{ verification.id }}" style="display: inline;">
                     <button type="submit" class="action-btn reject-btn" 
-                            onclick="return confirm('Reject this submission?');">✗ Reject</button>
+                            onclick="return confirm('⚠️ Are you sure you want to reject this submission?');">
+                        ✗ Reject
+                    </button>
                 </form>
             </div>
         </div>
@@ -260,5 +269,4 @@
     {% endif %}
 </div>
 {% endblock %}
-                        
-
+    
