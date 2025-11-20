@@ -2,161 +2,262 @@
 
 {% block content %}
 <style>
-    .admin-shell {
-        margin-top: 14px;
-        max-width: 960px;
-        margin-left: auto;
-        margin-right: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        font-size: 13px;
+    .verification-container {
+        margin-top: 12px;
+        padding: 16px;
     }
-    .card {
-        background: rgba(15,23,42,0.96);
+    
+    .admin-header {
+        background: rgba(15, 23, 42, 0.96);
         border-radius: 24px;
-        border: 1px solid rgba(148,163,184,0.5);
-        padding: 14px 14px 16px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        padding: 24px;
+        margin-bottom: 24px;
     }
-    .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 10px;
+    
+    .admin-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, #06b6d4, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
-    .card-title { font-size: 15px; font-weight: 600; }
-    .card-sub { font-size: 11px; color: var(--text-muted); }
-
-    .admin-tabs {
-        display: inline-flex;
-        background: rgba(15,23,42,0.98);
-        border-radius: 999px;
-        border: 1px solid rgba(148,163,184,0.5);
-        padding: 3px;
-    }
-    .admin-tab-link {
-        font-size: 12px;
-        padding: 6px 16px;
-        border-radius: 999px;
-        text-decoration: none;
-        color: #e5e7eb;
-    }
-    .admin-tab-link.active {
-        background: linear-gradient(135deg,#f97316,#ec4899);
-        color: #020617;
-        box-shadow: 0 6px 16px rgba(248,113,113,0.45);
-    }
-
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(2,minmax(0,1fr));
-        gap: 10px 18px;
-        margin-top: 6px;
-    }
-    .form-field {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-    .form-label {
-        font-size: 12px;
-        color: var(--text-muted);
-    }
-    .form-input {
-        background: #020617;
-        border-radius: 999px;
-        border: 1px solid rgba(75,85,99,0.9);
-        padding: 7px 11px;
+    
+    .admin-subtitle {
         font-size: 13px;
-        color: #e5e7eb;
-        outline: none;
+        color: rgba(229, 231, 235, 0.7);
     }
-    .switch-row {
+    
+    .admin-tabs {
         display: flex;
+        gap: 0;
+        margin-bottom: 24px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .admin-tab {
+        padding: 12px 24px;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 14px;
+        display: inline-flex;
         align-items: center;
         gap: 8px;
-        margin-top: 4px;
+        transition: all 0.2s;
+        position: relative;
     }
-    .form-submit {
-        margin-top: 12px;
-        display: flex;
-        justify-content: flex-end;
+    
+    .admin-tab:first-child {
+        border-radius: 12px 0 0 12px;
     }
-    .btn-primary {
-        background: linear-gradient(135deg,#f97316,#ec4899);
+    
+    .admin-tab:last-child {
+        border-radius: 0 12px 12px 0;
+    }
+    
+    .admin-tab.movies, .admin-tab.series {
+        background: rgba(15, 23, 42, 0.9);
+        color: #e5e7eb;
+        border: 1.5px solid rgba(148, 163, 184, 0.4);
+    }
+    
+    .admin-tab.verification {
+        background: linear-gradient(135deg, #06b6d4, #3b82f6);
         color: #020617;
-        border-radius: 999px;
-        padding: 8px 18px;
-        border: none;
+        border: 1.5px solid rgba(148, 163, 184, 0.4);
+    }
+    
+    .verification-list {
+        display: grid;
+        gap: 20px;
+    }
+    
+    .verification-item {
+        background: rgba(15, 23, 42, 0.96);
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        padding: 20px;
+        display: grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 20px;
+        align-items: start;
+    }
+    
+    .verification-poster {
+        width: 120px;
+        height: 180px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: rgba(15, 23, 42, 0.8);
+    }
+    
+    .verification-info h3 {
+        margin: 0 0 12px 0;
+        font-size: 18px;
+        color: #e5e7eb;
+    }
+    
+    .verification-meta {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 12px;
         font-size: 13px;
-        font-weight: 500;
+        color: rgba(229, 231, 235, 0.7);
+    }
+    
+    .verification-meta span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .verification-links {
+        margin-top: 12px;
+    }
+    
+    .verification-links a {
+        display: inline-block;
+        margin-right: 12px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: rgba(6, 182, 212, 0.1);
+        border: 1px solid rgba(6, 182, 212, 0.5);
+        color: #06b6d4;
+        text-decoration: none;
+        font-size: 12px;
+    }
+    
+    .verification-actions {
+        display: flex;
+        gap: 12px;
+        align-self: center;
+    }
+    
+    .action-btn {
+        padding: 10px 20px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 700;
         cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
-    .hint {
-        font-size: 11px;
-        color: var(--text-muted);
-        margin-top: 2px;
+    
+    .approve-btn {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #020617;
     }
-
-    @media (max-width: 700px) {
-        .form-grid { grid-template-columns: minmax(0,1fr); }
-        .card-header { flex-direction: column; gap: 8px; }
+    
+    .reject-btn {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #020617;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(229, 231, 235, 0.6);
+    }
+    
+    .empty-state p:first-child {
+        font-size: 56px;
+        margin-bottom: 16px;
+    }
+    
+    .message {
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        font-size: 14px;
+    }
+    
+    .message.success {
+        background: rgba(34, 197, 94, 0.1);
+        border: 1px solid rgba(34, 197, 94, 0.5);
+        color: #22c55e;
     }
 </style>
 
-<section class="admin-shell">
-    <article class="card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">Admin dashboard</div>
-                <div class="card-sub">Control verification system and limits for Movies Magic Club.</div>
+<div class="verification-container">
+    <div class="admin-header">
+        <h1 class="admin-title">✅ Admin - Verification Requests</h1>
+        <p class="admin-subtitle">Review and approve/reject user-submitted movies & series</p>
+    </div>
+    
+    {% if message %}
+    <div class="message success">
+        {{ message }}
+    </div>
+    {% endif %}
+    
+    <div class="admin-tabs">
+        <a href="/admin/movies" class="admin-tab movies">🎬 Movies</a>
+        <a href="/admin/series" class="admin-tab series">📺 Series</a>
+        <a href="/admin/verification" class="admin-tab verification">✅ Verification</a>
+    </div>
+    
+    {% if verifications %}
+    <div class="verification-list">
+        {% for verification in verifications %}
+        <div class="verification-item">
+            <img src="/static/{{ verification.poster_path }}" 
+                 alt="{{ verification.title }}" 
+                 class="verification-poster"
+                 onerror="this.src='https://via.placeholder.com/120x180/1e293b/64748b?text=No+Poster'">
+            
+            <div class="verification-info">
+                <h3>{{ verification.title }}</h3>
+                
+                <div class="verification-meta">
+                    <span>🎬 {{ verification.type|title }}</span>
+                    <span>🌐 {{ verification.language }}</span>
+                    <span>📺 {{ verification.quality }}</span>
+                    <span>🏷️ {{ verification.category or "—" }}</span>
+                    <span>👤 {{ verification.submitted_by }}</span>
+                </div>
+                
+                <div class="verification-links">
+                    {% if verification.watch_url %}
+                        <a href="{{ verification.watch_url }}" target="_blank">👁 Watch URL</a>
+                    {% endif %}
+                    {% if verification.download_url %}
+                        <a href="{{ verification.download_url }}" target="_blank">⬇ Download URL</a>
+                    {% endif %}
+                </div>
+                
+                {% if verification.qualities %}
+                <div style="margin-top: 12px; font-size: 12px; color: #06b6d4;">
+                    Quality links: {{ verification.qualities|length }} available
+                </div>
+                {% endif %}
             </div>
-            <div class="admin-tabs">
-                <a href="/admin/movies" class="admin-tab-link">Movies dashboard</a>
-                <a href="/admin/series" class="admin-tab-link">Series dashboard</a>
-                <a href="/admin/verification" class="admin-tab-link active">Verification</a>
+            
+            <div class="verification-actions">
+                <form method="post" action="/admin/verification/approve/{{ verification.id }}" style="display: inline;">
+                    <button type="submit" class="action-btn approve-btn">✓ Approve</button>
+                </form>
+                
+                <form method="post" action="/admin/verification/reject/{{ verification.id }}" style="display: inline;">
+                    <button type="submit" class="action-btn reject-btn" 
+                            onclick="return confirm('Reject this submission?');">✗ Reject</button>
+                </form>
             </div>
         </div>
-
-        <form method="post" action="/admin/verification">
-            <div class="form-grid">
-                <div class="form-field" style="grid-column: 1 / -1;">
-                    <label class="form-label">Verification status</label>
-                    <div class="switch-row">
-                        <input type="checkbox" id="enabled" name="enabled"
-                               {% if settings.enabled %}checked{% endif %}>
-                        <label for="enabled" style="font-size:13px;">Enable verification system</label>
-                    </div>
-                    <div class="hint">
-                        When disabled, all users can watch/download without verification or limits.
-                    </div>
-                </div>
-
-                <div class="form-field">
-                    <label class="form-label">Free limit (clicks)</label>
-                    <input class="form-input" type="number" name="free_limit"
-                           min="0" max="50"
-                           value="{{ settings.free_limit }}">
-                    <div class="hint">
-                        How many watch/download clicks are allowed before asking verification again.
-                    </div>
-                </div>
-
-                <div class="form-field">
-                    <label class="form-label">Validity window (minutes)</label>
-                    <input class="form-input" type="number" name="valid_minutes"
-                           min="1" max="10080"
-                           value="{{ settings.valid_minutes }}">
-                    <div class="hint">
-                        Time window after verification during which free clicks are counted (e.g. 1440 = 24 hours).
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-submit">
-                <button type="submit" class="btn-primary">Save verification settings</button>
-            </div>
-        </form>
-    </article>
-</section>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p style="font-size: 56px; margin-bottom: 16px;">✅</p>
+        <p>No pending verification requests!</p>
+        <p style="font-size: 13px; margin-top: 8px;">All submissions have been reviewed.</p>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
+                        
