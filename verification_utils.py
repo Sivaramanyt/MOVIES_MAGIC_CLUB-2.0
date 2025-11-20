@@ -1,22 +1,21 @@
 # verification_utils.py
-#
+
 # Dynamic verification logic for Movies + Series.
 # - Global settings are read from Mongo collection "settings", _id="verification".
 # - Per-user usage is tracked in "verifications" collection based on session_id.
-#
+
 # Functions used by routes:
-#   - get_verification_settings()
-#   - should_require_verification(request)
-#   - increment_free_used(request)
-#   - mark_verified(request)
+# - get_verification_settings()
+# - should_require_verification(request)
+# - increment_free_used(request)
+# - mark_verified(request)
 
 import secrets
 from datetime import datetime, timedelta
 from typing import Tuple, Dict, Any, Optional
-
 import pytz
-from fastapi import Request
 
+from fastapi import Request
 from db import get_db
 from config import (
     VERIFICATION_DEFAULT_ENABLED,
@@ -31,14 +30,13 @@ async def get_verification_settings() -> Dict[str, Any]:
     """
     Read global verification settings from Mongo.
     Falls back to config defaults if document not present.
-
     Document in Mongo (db.settings):
-    {
-        _id: "verification",
-        enabled: true/false,
-        free_limit: int,
-        valid_minutes: int
-    }
+    
+      _id: "verification",
+      enabled: true/false,
+      free_limit: int,
+      valid_minutes: int
+    
     """
     db = get_db()
     if db is None:
@@ -75,9 +73,7 @@ async def get_user_verification_state(
 ) -> Tuple[Dict[str, Any], Dict[str, Any], str]:
     """
     Load or initialise verification state for current session_id.
-
     Returns: (settings, state, today_str)
-
     - settings: {enabled, free_limit, valid_minutes}
     - state: {free_used, verified_until (datetime | None)}
     """
@@ -120,7 +116,6 @@ async def get_user_verification_state(
                     }
                 },
             )
-
         return settings, state, today
 
     verified_until = doc.get("verified_until")
@@ -140,6 +135,7 @@ async def get_user_verification_state(
 async def should_require_verification(request: Request) -> bool:
     """
     Decide if current click (watch/download) should be sent to verification.
+    Called AFTER increment_free_used() in routes.
     """
     settings, state, today = await get_user_verification_state(request)
 
@@ -153,7 +149,8 @@ async def should_require_verification(request: Request) -> bool:
         return False
 
     # If free usage not exceeded → allow
-    if state["free_used"] < settings["free_limit"]:
+    # FIXED: Changed < to <= so it works correctly after increment
+    if state["free_used"] <= settings["free_limit"]:
         return False
 
     # Free limit finished & not currently verified → require verification
@@ -163,7 +160,7 @@ async def should_require_verification(request: Request) -> bool:
 async def increment_free_used(request: Request) -> None:
     """
     Increment free_used when user actually accesses watch/download
-    (after passing verification checks).
+    (called BEFORE verification check in routes).
     Movies + series both call this.
     """
     settings, state, today = await get_user_verification_state(request)
@@ -218,5 +215,5 @@ async def mark_verified(request: Request) -> None:
             }
         },
         upsert=True,
-            )
+    )
     
