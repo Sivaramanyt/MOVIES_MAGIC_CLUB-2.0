@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .legal-container {
+        margin-top: 12px;
+        padding: 16px;
+    }
+    
+    .legal-card {
+        background: rgba(15, 23, 42, 0.96);
+        border-radius: 24px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        padding: 24px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .legal-header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+    }
+    
+    .legal-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, #06b6d4, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .legal-subtitle {
+        font-size: 13px;
+        color: rgba(229, 231, 235, 0.7);
+    }
+    
+    .legal-content {
+        line-height: 1.8;
+        font-size: 14px;
+    }
+    
+    .legal-content h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 24px 0 12px 0;
+        color: #06b6d4;
+    }
+    
+    .legal-content p {
+        margin-bottom: 16px;
+        color: rgba(229, 231, 235, 0.9);
+    }
+    
+    .legal-content ul {
+        margin: 12px 0;
+        padding-left: 24px;
+    }
+    
+    .legal-content li {
+        margin-bottom: 8px;
+        color: rgba(229, 231, 235, 0.9);
+    }
+    
+    .legal-highlight {
+        background: rgba(6, 182, 212, 0.1);
+        border-left: 3px solid #06b6d4;
+        padding: 16px;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    
+    .legal-warning {
+        background: rgba(239, 68, 68, 0.1);
+        border-left: 3px solid #ef4444;
+        padding: 16px;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+</style>
+
+<div class="legal-container">
+    <div class="legal-card">
+        <div class="legal-header">
+            <h1 class="legal-title">⚖️ Copyright Disclaimer</h1>
+            <p class="legal-subtitle">Last updated: November 20, 2025</p>
+        </div>
+        
+        <div class="legal-content">
+            <div class="legal-warning">
+                <p style="margin: 0; font-weight: 600;">
+                    🚨 IMPORTANT NOTICE: This website does NOT host or store any video files on our servers.
+                </p>
+            </div>
+            
+            <h2>About Movies Magic Club</h2>
+            <p>
+                Movies Magic Club is a content aggregation and information website that provides links to 
+                third-party streaming services and platforms. We do not host, upload, or store any copyrighted 
+                content on our servers.
+            </p>
+            
+            <h2>Copyright Ownership</h2>
+            <p>
+                All movies, series, and content available through this website are the intellectual property 
+                of their respective owners, production companies, distributors, and copyright holders. We do 
+                not claim ownership of any content linked on our platform.
+            </p>
+            
+            <div class="legal-highlight">
+                <h2 style="margin-top: 0;">What We Do</h2>
+                <ul>
+                    <li>We provide information about movies and TV series</li>
+                    <li>We share links to third-party streaming platforms and services</li>
+                    <li>We aggregate publicly available content information</li>
+                    <li>We act as a directory service for entertainment content</li>
+                </ul>
+            </div>
+            
+            <div class="legal-highlight">
+                <h2 style="margin-top: 0;">What We DON'T Do</h2>
+                <ul>
+                    <li>❌ We do NOT host any video files on our servers</li>
+                    <li>❌ We do NOT upload or capture copyrighted content illegally</li>
+                    <li>❌ We do NOT store any movies or series on our database</li>
+                    <li>❌ We do NOT encode, rip, or distribute copyrighted materials</li>
+                    <li>❌ We do NOT promote piracy or illegal distribution</li>
+                </ul>
+            </div>
+            
+            <h2>Third-Party Content</h2>
+            <p>
+                All streaming links, download links, and embedded content are hosted on third-party platforms 
+                and services that are not under our control. We are not responsible for the availability, 
+                quality, legality, or copyright status of content hosted on external websites.
+            </p>
+            
+            <h2>DMCA Compliance</h2>
+            <p>
+                Movies Magic Club respects the intellectual property rights of others and expects our users 
+                to do the same. We comply with the Digital Millennium Copyright Act (DMCA) and will respond 
+                to valid takedown notices.
+            </p>
+            
+            <p>
+                If you believe that any content linked on our website infringes your copyright, please contact 
+                us immediately with:
+            </p>
+            <ul>
+                <li>Identification of the copyrighted work</li>
+                <li>The URL/link location on our website</li>
+                <li>Your contact information</li>
+                <li>A statement of good faith belief</li>
+                <li>Your physical or electronic signature</li>
+            </ul>
+            
+            <h2>User Responsibility</h2>
+            <p>
+                Users of this website are responsible for ensuring they have the legal right to access and 
+                view content in their jurisdiction. We recommend users:
+            </p>
+            <ul>
+                <li>Use legitimate streaming services with proper licenses</li>
+                <li>Respect copyright laws in their country</li>
+                <li>Support content creators by using official platforms</li>
+                <li>Verify the legality of content before accessing</li>
+            </ul>
+            
+            <div class="legal-warning">
+                <h2 style="margin-top: 0;">Legal Disclaimer</h2>
+                <p>
+                    This website is provided for informational and entertainment purposes only. We do not 
+                    encourage or promote illegal streaming, downloading, or distribution of copyrighted content. 
+                    Users access third-party links at their own risk and discretion.
+                </p>
+            </div>
+            
+            <h2>Content Removal Requests</h2>
+            <p>
+                If you are a copyright holder or authorized representative and believe that content linked 
+                on our website violates your rights, please contact us through our support channel. We will 
+                investigate and remove infringing links promptly upon verification.
+            </p>
+            
+            <h2>Changes to This Disclaimer</h2>
+            <p>
+                We reserve the right to update or modify this disclaimer at any time. Continued use of the 
+                website after changes constitutes acceptance of the updated terms.
+            </p>
+            
+            <h2>Contact Information</h2>
+            <p>
+                For copyright concerns, DMCA notices, or content removal requests, please use our support 
+                chat or contact us via our Telegram channel.
+            </p>
+            
+            <div class="legal-highlight">
+                <p style="margin: 0; font-weight: 600;">
+                    📧 For legal matters, contact us through the Support button on our website.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
