@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from db import get_db
-from .admin_auth import is_admin  # ⭐ ADD THIS IMPORT
+from .admin_auth import is_admin
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -13,58 +13,58 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/admin/verification", response_class=HTMLResponse)
 async def admin_verification_settings(request: Request):
     """
-    Admin page to manage verification settings.
+    Show verification settings page with defaults if no settings exist
     """
-    # ⭐ ADD AUTHENTICATION CHECK
     if not is_admin(request):
         return RedirectResponse("/admin/login", status_code=303)
     
     db = get_db()
+    
+    # ⭐ FIX: Always provide settings, use defaults if needed
     if db is None:
-        return templates.TemplateResponse(
-            "admin_verification.html",
-            {
-                "request": request,
-                "message": "Database not connected",
-                "enabled": True,
-                "free_limit": 3,
-                "valid_minutes": 1440,
-            },
-        )
-    
-    # Fetch current settings from DB
-    settings = await db["verification_settings"].find_one({"_id": "default"})
-    
-    if not settings:
-        # Default values
+        # Database not connected - use default settings
         settings = {
-            "enabled": True,
+            "enabled": False,
             "free_limit": 3,
-            "valid_minutes": 1440,
+            "message": "Database not connected. Using default settings."
         }
+    else:
+        # Try to get settings from database
+        settings_doc = await db["settings"].find_one({"_id": "verification"})
+        
+        if settings_doc is None:
+            # No settings exist yet - create default
+            settings = {
+                "_id": "verification",
+                "enabled": False,
+                "free_limit": 3,
+                "message": "Settings created with defaults."
+            }
+            # Save defaults to database
+            await db["settings"].insert_one(settings)
+        else:
+            # Use existing settings
+            settings = settings_doc
     
+    # ⭐ FIX: Always pass settings to template
     return templates.TemplateResponse(
         "admin_verification.html",
         {
             "request": request,
-            "enabled": settings.get("enabled", True),
-            "free_limit": settings.get("free_limit", 3),
-            "valid_minutes": settings.get("valid_minutes", 1440),
+            "settings": settings,  # Always defined now!
         },
     )
 
 
 @router.post("/admin/verification", response_class=HTMLResponse)
-async def admin_verification_update(
+async def admin_update_verification(
     request: Request,
-    enabled: str = Form("off"),  # checkbox sends "on" if checked
+    enabled: bool = Form(False),
     free_limit: int = Form(3),
-    valid_minutes: int = Form(1440),
 ):
     """
-    Update verification settings.
+    Update verification settings
     """
-    # ⭐ ADD AUTHENTICATION CHECK
     if not is_admin(request):
         return RedirectResponse("/admin/login", status_code=303)
     
@@ -75,24 +75,20 @@ async def admin_verification_update(
             status_code=303,
         )
     
-    # Convert checkbox value to boolean
-    enabled_bool = (enabled == "on")
-    
-    settings = {
-        "_id": "default",
-        "enabled": enabled_bool,
-        "free_limit": free_limit,
-        "valid_minutes": valid_minutes,
-    }
-    
-    await db["verification_settings"].update_one(
-        {"_id": "default"},
-        {"$set": settings},
-        upsert=True,
+    # ⭐ FIX: Use upsert=True to create if doesn't exist
+    await db["settings"].update_one(
+        {"_id": "verification"},
+        {
+            "$set": {
+                "enabled": enabled,
+                "free_limit": max(1, min(10, free_limit)),  # Keep between 1-10
+            }
+        },
+        upsert=True,  # Creates document if it doesn't exist
     )
     
     return RedirectResponse(
-        "/admin/verification?message=Settings+updated+successfully",
+        "/admin/verification?message=Settings+saved+successfully+%E2%9C%85",
         status_code=303,
-)
+    )
     
