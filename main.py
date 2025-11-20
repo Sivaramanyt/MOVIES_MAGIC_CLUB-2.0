@@ -22,6 +22,7 @@ from routes.admin_episodes import router as admin_episodes_router
 from routes.admin_verification import router as admin_verification_router
 from routes.support import router as support_router
 from routes.legal import router as legal_router
+from routes.quality import router as quality_router
 from config import API_ID, API_HASH, BOT_TOKEN  # from config.py
 
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-this-secret")
@@ -47,6 +48,7 @@ app.include_router(admin_episodes_router)
 app.include_router(admin_verification_router)
 app.include_router(support_router)
 app.include_router(legal_router)
+app.include_router(quality_router)
 
 # ---------- Pyrogram bot ----------
 
