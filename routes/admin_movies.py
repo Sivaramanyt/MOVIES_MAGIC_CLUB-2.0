@@ -93,14 +93,25 @@ async def admin_create_movie(
     year: str = Form(""),
     quality: str = Form("HD"),
     category: str = Form(""),
-    watch_url: str = Form(""),
-    download_url: str = Form(""),
-    languages: List[str] = Form(default=[]),  # checkbox languages
+    watch_url: str = Form(""),  # Fallback single URL
+    download_url: str = Form(""),  # Fallback single URL
+    # ⭐ NEW: Quality-specific URLs
+    quality_480p_watch: str = Form(""),
+    quality_480p_download: str = Form(""),
+    quality_720p_watch: str = Form(""),
+    quality_720p_download: str = Form(""),
+    quality_1080p_watch: str = Form(""),
+    quality_1080p_download: str = Form(""),
+    quality_2k_watch: str = Form(""),
+    quality_2k_download: str = Form(""),
+    quality_4k_watch: str = Form(""),
+    quality_4k_download: str = Form(""),
+    languages: List[str] = Form(default=[]),
     description: str = Form(""),
     poster: UploadFile = File(None),
 ):
     """
-    Create movie: primary language = first checked language, others in languages[].
+    Create movie with multiple quality options
     """
     if not is_admin(request):
         return RedirectResponse("/admin/login", status_code=303)
@@ -112,19 +123,17 @@ async def admin_create_movie(
             status_code=303,
         )
 
+    # Handle poster upload
     poster_path = None
     if poster and poster.filename:
         poster_dir = os.path.join("static", "posters")
         os.makedirs(poster_dir, exist_ok=True)
-
         ext = os.path.splitext(poster.filename)[1].lower()
         filename = f"{uuid4().hex}{ext}"
         filepath = os.path.join(poster_dir, filename)
-
         content = await poster.read()
         with open(filepath, "wb") as f:
             f.write(content)
-
         poster_path = f"posters/{filename}"
 
     year_int = None
@@ -134,6 +143,45 @@ async def admin_create_movie(
         except ValueError:
             year_int = None
 
+    # ⭐ NEW: Build qualities dict
+    qualities = {}
+    
+    if quality_480p_watch.strip() or quality_480p_download.strip():
+        qualities["480p"] = {
+            "watch_url": quality_480p_watch.strip() or None,
+            "download_url": quality_480p_download.strip() or None,
+        }
+    
+    if quality_720p_watch.strip() or quality_720p_download.strip():
+        qualities["720p"] = {
+            "watch_url": quality_720p_watch.strip() or None,
+            "download_url": quality_720p_download.strip() or None,
+        }
+    
+    if quality_1080p_watch.strip() or quality_1080p_download.strip():
+        qualities["1080p"] = {
+            "watch_url": quality_1080p_watch.strip() or None,
+            "download_url": quality_1080p_download.strip() or None,
+        }
+    
+    if quality_2k_watch.strip() or quality_2k_download.strip():
+        qualities["2k"] = {
+            "watch_url": quality_2k_watch.strip() or None,
+            "download_url": quality_2k_download.strip() or None,
+        }
+    
+    if quality_4k_watch.strip() or quality_4k_download.strip():
+        qualities["4k"] = {
+            "watch_url": quality_4k_watch.strip() or None,
+            "download_url": quality_4k_download.strip() or None,
+        }
+
+    # Determine quality label for display
+    if qualities:
+        quality_label = ", ".join(qualities.keys())
+    else:
+        quality_label = quality or "HD"
+
     primary_language = languages[0] if languages else "Tamil"
 
     movie_doc = {
@@ -141,21 +189,22 @@ async def admin_create_movie(
         "year": year_int,
         "language": primary_language,
         "languages": languages,
-        "quality": quality or "HD",
+        "quality": quality_label,
         "category": category,
-        "watch_url": watch_url,
-        "download_url": download_url,
+        "watch_url": watch_url or None,  # Fallback
+        "download_url": download_url or None,  # Fallback
+        "qualities": qualities,  # ⭐ NEW: Store all quality options
         "poster_path": poster_path,
         "description": description,
         "created_at": datetime.utcnow(),
     }
 
     await db["movies"].insert_one(movie_doc)
-
     return RedirectResponse(
         "/admin/movies?message=Movie+saved+successfully+%E2%9C%85",
         status_code=303,
-    )
+    ) 
+    
 
 
 # ---------- MOVIES ADMIN: EDIT + DELETE ----------
