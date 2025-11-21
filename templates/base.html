@@ -600,7 +600,7 @@
 </div>
 
 <script>
-    function toggleSupportModal() {
+function toggleSupportModal() {
   const modal = document.getElementById("supportModal");
   modal.classList.toggle("active");
   showOptions();
@@ -609,6 +609,7 @@
 function closeSupportModal(event) {
   if (!event || event.target.id === "supportModal") {
     document.getElementById("supportModal").classList.remove("active");
+    if (window.chatInterval) clearInterval(window.chatInterval);
   }
 }
 
@@ -617,6 +618,7 @@ function showOptions() {
   document.getElementById("supportForm").classList.remove("active");
   document.getElementById("supportSuccess").classList.remove("active");
   document.getElementById("supportChat").style.display = "none";
+  if (window.chatInterval) clearInterval(window.chatInterval);
 }
 
 function showMessageForm() {
@@ -624,6 +626,7 @@ function showMessageForm() {
   document.getElementById("supportChat").style.display = "none";
   document.getElementById("supportForm").classList.add("active");
   document.getElementById("supportSuccess").classList.remove("active");
+  if (window.chatInterval) clearInterval(window.chatInterval);
 }
 
 function showLiveChat() {
@@ -632,29 +635,65 @@ function showLiveChat() {
   document.getElementById("supportSuccess").classList.remove("active");
   document.getElementById("supportChat").style.display = "flex";
   fetchChatMessages();
+  if (window.chatInterval) clearInterval(window.chatInterval);
+  window.chatInterval = setInterval(fetchChatMessages, 3000); // Poll every 3 seconds
 }
 
-// Dummy fetch function, replace with AJAX/backend fetch later
 function fetchChatMessages() {
-  document.getElementById("chatMessages").innerHTML = '<div>Welcome to Live Chat!</div>';
+  fetch('/support/chat/fetch')
+    .then(response => response.json())
+    .then(data => {
+      const chatArea = document.getElementById("chatMessages");
+      if (data.success) {
+        chatArea.innerHTML = "";
+        for (const msg of data.messages) {
+          const div = document.createElement("div");
+          div.textContent = `${msg.name}: ${msg.message}`;
+          chatArea.appendChild(div);
+        }
+      } else {
+        chatArea.innerHTML = "<div>Error loading chat</div>";
+      }
+    })
+    .catch(() => {
+      document.getElementById("chatMessages").innerHTML = "<div>Failed to load chat messages</div>";
+    });
 }
 
 function sendChatMessage() {
   const input = document.getElementById("chatInput");
   const message = input.value.trim();
   if (message) {
-    // Append message locally (replace with AJAX/WebSocket for real chat)
-    const msgEl = document.createElement("div");
-    msgEl.textContent = "You: " + message;
-    document.getElementById("chatMessages").appendChild(msgEl);
-    input.value = "";
-    // TODO: Send message to backend with AJAX/WebSocket here
+    fetch('/support/chat/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'User', message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        fetchChatMessages();
+        input.value = "";
+      } else {
+        alert("Error: " + (data.error || "Failed to send message"));
+      }
+    })
+    .catch(error => {
+      alert("Network error - message not sent");
+      console.error(error);
+    });
   }
 }
 
 async function submitSupportMessage(event) {
   event.preventDefault();
   const form = event.target;
+  const email = form.email.value.trim();
+  const telegram = form.telegram_username.value.trim();
+  if (!email && !telegram) {
+    alert("Please enter your email or Telegram username so we can reply!");
+    return;
+  }
   const formData = new FormData(form);
   try {
     const response = await fetch("/support/message", {
@@ -673,10 +712,10 @@ async function submitSupportMessage(event) {
     alert("Error sending message. Please try again.");
     console.error(error);
   }
-      }
-      
+}
 </script>
 <!-- ⭐ SUPPORT WIDGET - END -->
+    
 
 </body>
     </html>
