@@ -34,14 +34,14 @@
         color: var(--text-muted);
     }
 
-    /* Movies hero (similar to series hero) */
+    /* HERO SECTION */
     .movie-hero-shell {
         position: relative;
         overflow: hidden;
         border-radius: 24px;
-        background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.25), rgba(15, 23, 42, 0.98));
-        border: 1px solid rgba(55, 65, 81, 0.9);
-        padding: 14px 14px 16px;
+        background: radial-gradient(circle at top left, rgba(59,130,246,0.25), rgba(15,23,42,0.98));
+        border: 1px solid rgba(55,65,81,0.9);
+        padding: 14px;
     }
 
     .movie-hero-grid {
@@ -55,7 +55,7 @@
         gap: 12px;
         align-items: center;
         opacity: 0;
-        transition: opacity 0.5s ease-in-out;
+        transition: opacity .5s ease-in-out;
         position: absolute;
         width: 100%;
         top: 0;
@@ -78,13 +78,6 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        display: block;
-    }
-
-    .movie-hero-main {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
     }
 
     .movie-hero-title {
@@ -99,36 +92,29 @@
 
     .movie-hero-actions {
         display: flex;
-        flex-wrap: wrap;
         gap: 8px;
         margin-top: 6px;
     }
 
     .movie-btn-hero-primary,
     .movie-btn-hero-secondary {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
         padding: 8px 16px;
         border-radius: 999px;
         font-size: 12px;
         text-decoration: none;
-        border: none;
-        cursor: pointer;
         white-space: nowrap;
+        cursor: pointer;
     }
 
     .movie-btn-hero-primary {
         background: linear-gradient(135deg, #f97316, #ec4899);
         color: #020617;
-        box-shadow: 0 12px 30px rgba(248, 113, 113, 0.6);
     }
 
     .movie-btn-hero-secondary {
         background: #020617;
         color: #e5e7eb;
-        border: 1px solid rgba(148, 163, 184, 0.8);
+        border: 1px solid rgba(148,163,184,.8);
     }
 
     .movie-hero-dots {
@@ -141,21 +127,16 @@
     .movie-hero-dot {
         width: 16px;
         height: 3px;
+        background: rgba(148,163,184,.6);
         border-radius: 999px;
-        background: rgba(148, 163, 184, 0.6);
         cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .movie-hero-dot:hover {
-        background: rgba(249, 115, 22, 0.7);
     }
 
     .movie-hero-dot.active {
         background: #f97316;
     }
 
-    /* Genre chips */
+    /* GENRE */
     .genre-card {
         display: flex;
         flex-direction: column;
@@ -164,148 +145,136 @@
 
     .genre-row {
         display: flex;
-        flex-wrap: wrap;
         gap: 8px;
+        flex-wrap: wrap;
     }
 
     .genre-chip {
         padding: 6px 12px;
         border-radius: 999px;
         font-size: 11px;
-        border: 1px solid rgba(75, 85, 99, 0.9);
         background: #020617;
+        border: 1px solid rgba(75,85,99,.9);
         color: #e5e7eb;
         text-decoration: none;
     }
 
-    /* Horizontal rows */
+    /* ⭐ NEW UPDATED HORIZONTAL SCROLL — SHOW 3 POSTERS AT ONCE */
     .horizontal-scroll {
         display: flex;
         gap: 10px;
         overflow-x: auto;
-        padding-bottom: 4px;
-        scrollbar-width: thin;
+        padding-bottom: 8px;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
     }
 
-    .tile-link {
-        text-decoration: none;
-        color: inherit;
-        display: block;
+    .horizontal-scroll::-webkit-scrollbar {
+        display: none;
     }
 
     .tile {
-        flex: 0 0 150px;
+        flex: 0 0 calc(33.33% - 10px);
+        scroll-snap-align: start;
         border-radius: 18px;
         background: radial-gradient(circle at top, #1e293b, #020617);
-        border: 1px solid rgba(55, 65, 81, 0.9);
-        padding: 8px 8px 10px;
+        border: 1px solid rgba(55,65,81,0.9);
+        padding: 8px;
     }
 
     .tile-poster {
         width: 100%;
+        height: 145px;
         border-radius: 14px;
         overflow: hidden;
-        background: radial-gradient(circle at top, #1d4ed8, #020617);
+        background: #1d4ed8;
         margin-bottom: 6px;
     }
 
     .tile-poster img {
         width: 100%;
-        height: 110px;
+        height: 100%;
         object-fit: cover;
-        display: block;
     }
 
     .tile-title {
         font-size: 12px;
         font-weight: 500;
-        margin-bottom: 2px;
     }
 
     .tile-meta {
         font-size: 11px;
-        color: var(--text-muted);
+        color: #94a3b8;
     }
 
     @media (max-width: 768px) {
         .movie-hero-item {
-            grid-template-columns: minmax(0, 1fr);
+            grid-template-columns: 1fr;
         }
     }
 </style>
 
 <section class="page-shell">
 
-    <!-- Latest release hero slider -->
+    <!-- ======================= HERO SECTION ======================= -->
     <article class="movie-hero-shell">
-        <div class="card-header" style="margin-bottom:8px;">
+        <div class="card-header">
             <div>
                 <div class="card-title">Latest release</div>
-                <div class="card-sub">
-                    Fresh movies added to Movies Magic Club
-                </div>
+                <div class="card-sub">Fresh movies added to Movies Magic Club</div>
             </div>
         </div>
 
-        {% if latest_movies and latest_movies|length > 0 %}
-            <div class="movie-hero-grid" id="heroSlider">
-                {% set max_slides = latest_movies|length if latest_movies|length < 5 else 5 %}
-                {% for movie in latest_movies[:max_slides] %}
-                <div class="movie-hero-item {% if loop.index0 == 0 %}active{% endif %}" data-slide="{{ loop.index0 }}">
-                    <div class="movie-hero-poster">
-                        {% if movie.poster_path %}
-                            <a href="/movie/{{ movie.id }}" class="tile-link">
-                                <img src="{{ url_for('static', path=movie.poster_path) }}"
-                                     alt="{{ movie.title }} poster">
-                            </a>
+        {% if latest_movies %}
+        <div class="movie-hero-grid" id="heroSlider">
+
+            {% set max_slides = latest_movies|length if latest_movies|length < 5 else 5 %}
+            {% for movie in latest_movies[:max_slides] %}
+            <div class="movie-hero-item {% if loop.index0 == 0 %}active{% endif %}"
+                 data-slide="{{ loop.index0 }}">
+
+                <div class="movie-hero-poster">
+                    {% if movie.poster_path %}
+                        <a href="/movie/{{ movie.id }}">
+                            <img src="{{ url_for('static', path=movie.poster_path) }}">
+                        </a>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <div class="movie-hero-title">{{ movie.title }}</div>
+                    <div class="movie-hero-meta">
+                        {{ movie.year }} · {{ movie.quality }} · {{ movie.category }}
+                    </div>
+
+                    <div class="movie-hero-actions">
+                        {% if movie.watch_url %}
+                        <a class="movie-btn-hero-primary" href="{{ movie.watch_url }}">
+                            ▶ Watch now
+                        </a>
+                        {% endif %}
+
+                        {% if movie.download_url %}
+                        <a class="movie-btn-hero-secondary" href="{{ movie.download_url }}">
+                            ⬇ Download
+                        </a>
                         {% endif %}
                     </div>
-                    <div class="movie-hero-main">
-                        <div class="movie-hero-title">
-                            {{ movie.title }}
-                        </div>
-                        <div class="movie-hero-meta">
-                            {{ movie.year or "" }}{% if movie.quality %} · {{ movie.quality }}{% endif %}{% if movie.category %} · {{ movie.category }}{% endif %}
-                        </div>
-                        <div class="movie-hero-actions">
-                            {% if movie.watch_url %}
-                                <a href="{{ movie.watch_url }}" class="movie-btn-hero-primary" target="_blank" rel="noopener">
-                                    ▶ Watch now
-                                </a>
-                            {% endif %}
-                            {% if movie.download_url %}
-                                <a href="{{ movie.download_url }}" class="movie-btn-hero-secondary" target="_blank" rel="noopener">
-                                    ⬇ Download
-                                </a>
-                            {% endif %}
-                        </div>
-                    </div>
                 </div>
-                {% endfor %}
-            </div>
 
-            <div class="movie-hero-dots" id="heroDots">
-                {% for i in range(max_slides) %}
-                    <div class="movie-hero-dot {% if i == 0 %}active{% endif %}" data-slide="{{ i }}"></div>
-                {% endfor %}
             </div>
-        {% else %}
-            <div class="movie-hero-grid">
-                <div class="movie-hero-item active">
-                    <div class="movie-hero-poster"></div>
-                    <div class="movie-hero-main">
-                        <div class="movie-hero-title">Sample Movie</div>
-                        <div class="movie-hero-meta">2024 · HD · Action / Adventure</div>
-                        <div class="movie-hero-actions">
-                            <a href="#" class="movie-btn-hero-primary">▶ Watch now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
+        </div>
+
+        <div class="movie-hero-dots" id="heroDots">
+            {% for i in range(max_slides) %}
+                <div class="movie-hero-dot {% if i == 0 %}active{% endif %}" data-slide="{{ i }}"></div>
+            {% endfor %}
+        </div>
         {% endif %}
     </article>
 
-    <!-- Browse by genre -->
+    <!-- ======================= GENRE SECTION ======================= -->
     <article class="card genre-card">
         <div class="card-header">
             <div>
@@ -313,6 +282,7 @@
                 <div class="card-sub">Quick shortcuts to common movie moods.</div>
             </div>
         </div>
+
         <div class="genre-row">
             <a href="/movies/browse?genre=Action" class="genre-chip">Action</a>
             <a href="/movies/browse?genre=Comedy" class="genre-chip">Comedy</a>
@@ -320,201 +290,121 @@
             <a href="/movies/browse?genre=Horror" class="genre-chip">Horror</a>
             <a href="/movies/browse?genre=Crime" class="genre-chip">Crime</a>
             <a href="/movies/browse?genre=Romance" class="genre-chip">Romance</a>
-            <a href="/movies/browse?genre=Sci-Fi" class="genre-chip">Sci‑Fi</a>
+            <a href="/movies/browse?genre=Sci-Fi" class="genre-chip">Sci-Fi</a>
             <a href="/movies/browse?genre=Fantasy" class="genre-chip">Fantasy</a>
         </div>
     </article>
 
-    <!-- Trending Now -->
-<div class="section-title">Trending now</div>
-<div class="hscroll-outer">
-  <div class="poster-hscroll" id="trending-poster-row">
-    {% for movie in trending_movies %}
-      <div class="poster-card">
-        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
-        <div>{{ movie.title }}</div>
-        <div style="font-size:12px;color:#b4c8eb;">{{ movie.year }} · {{ movie.quality or '' }}<br>{{ movie.category or '' }}</div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
+    <!-- ======================= TRENDING ======================= -->
+    <article class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Trending now</div>
+                <div class="card-sub">Popular across Movies Magic Club.</div>
+            </div>
+        </div>
 
-<!-- All Movies -->
-<div class="section-title">All movies</div>
-<div class="hscroll-outer">
-  <div class="poster-hscroll" id="allmovies-poster-row">
-    {% for movie in all_movies %}
-      <div class="poster-card">
-        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
-        <div>{{ movie.title }}</div>
-        <div style="font-size:12px;color:#b4c8eb;">{{ movie.year }}<br>{{ movie.category }}</div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-
-<!-- Tamil Movies -->
-<div class="section-title">Tamil movies</div>
-<div class="hscroll-outer">
-  <div class="poster-hscroll" id="tamilmovies-poster-row">
-    {% for movie in tamil_movies %}
-      <div class="poster-card">
-        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
-        <div>{{ movie.title }}</div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-
-<!-- Telugu Movies -->
-<div class="section-title">Telugu movies</div>
-<div class="hscroll-outer">
-  <div class="poster-hscroll" id="telugumovies-poster-row">
-    {% for movie in telugu_movies %}
-      <div class="poster-card">
-        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
-        <div>{{ movie.title }}</div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-
-<!-- Hindi Movies -->
-<div class="section-title">Hindi movies</div>
-<div class="hscroll-outer">
-  <div class="poster-hscroll" id="hindimovies-poster-row">
-    {% for movie in hindi_movies %}
-      <div class="poster-card">
-        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
-        <div>{{ movie.title }}</div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-
-<!-- Malayalam Movies -->
-<div class="section-title">Malayalam movies</div>
-<div class="hscroll-outer">
-  <div class="poster-hscroll" id="malayalammovies-poster-row">
-    {% for movie in malayalam_movies %}
-      <div class="poster-card">
-        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
-        <div>{{ movie.title }}</div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
-
-<!-- Kannada Movies -->
-<div class="section-title">Kannada movies</div>
-<div class="hscroll-outer">
-  <div class="poster-hscroll" id="kannadamovies-poster-row">
-    {% for movie in kannada_movies %}
-      <div class="poster-card">
-        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
-        <div>{{ movie.title }}</div>
-      </div>
-    {% endfor %}
-  </div>
-</div>
+        <div class="horizontal-scroll">
+            {% for m in latest_movies %}
+            <a class="tile-link" href="/movie/{{ m.id }}">
+                <div class="tile">
+                    <div class="tile-poster">
+                        <img src="{{ url_for('static', path=m.poster_path) }}">
+                    </div>
+                    <div class="tile-title">{{ m.title }}</div>
+                    <div class="tile-meta">{{ m.year }} · {{ m.quality }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
     </article>
+
+    <!-- ======================= ALL MOVIES ======================= -->
+    <article class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">
+                    All movies
+                    <a href="/movies/browse" style="color:#a5b4fc;font-size:11px;">See more →</a>
+                </div>
+                <div class="card-sub">Recently added across all languages.</div>
+            </div>
+        </div>
+
+        <div class="horizontal-scroll">
+            {% for m in latest_movies %}
+            <a href="/movie/{{ m.id }}" class="tile-link">
+                <div class="tile">
+                    <div class="tile-poster"><img src="{{ url_for('static', path=m.poster_path) }}"></div>
+                    <div class="tile-title">{{ m.title }}</div>
+                    <div class="tile-meta">{{ m.quality }} · {{ m.year }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </article>
+
+    <!-- ======================= LANGUAGE SECTIONS ======================= -->
+
+    {% for label, movies, lang in [
+        ('Tamil movies', tamil_movies, 'Tamil'),
+        ('Telugu movies', telugu_movies, 'Telugu'),
+        ('Hindi movies', hindi_movies, 'Hindi'),
+        ('Malayalam movies', malayalam_movies, 'Malayalam'),
+        ('Kannada movies', kannada_movies, 'Kannada')
+    ] %}
+
+    <article class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">
+                    {{ label }}
+                    <a href="/movies/browse" style="color:#a5b4fc;font-size:11px;">See more →</a>
+                </div>
+                <div class="card-sub">Top picks in {{ lang }}.</div>
+            </div>
+        </div>
+
+        <div class="horizontal-scroll">
+            {% for m in movies %}
+            <a href="/movie/{{ m.id }}" class="tile-link">
+                <div class="tile">
+                    <div class="tile-poster"><img src="{{ url_for('static', path=m.poster_path) }}"></div>
+                    <div class="tile-title">{{ m.title }}</div>
+                    <div class="tile-meta">{{ m.quality }} · {{ m.year }} · {{ lang }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </article>
+
+    {% endfor %}
 
 </section>
 
 <script>
-// Hero slider functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const slider = document.getElementById('heroSlider');
-    const dots = document.querySelectorAll('.movie-hero-dot');
+document.addEventListener('DOMContentLoaded', () => {
     const slides = document.querySelectorAll('.movie-hero-item');
-    
-    if (!slider || slides.length === 0) return;
-    
-    let currentSlide = 0;
-    let autoSlideInterval;
-    
-    // Function to show specific slide
-    function showSlide(index) {
-        // Remove active class from all slides and dots
-        slides.forEach(slide => slide.classList.remove('active'));
-        dots.forEach(dot => dot.classList.remove('active'));
-        
-        // Add active class to current slide and dot
-        slides[index].classList.add('active');
-        dots[index].classList.add('active');
-        
-        currentSlide = index;
+    const dots = document.querySelectorAll('.movie-hero-dot');
+
+    let current = 0;
+
+    function show(i) {
+        slides.forEach(s => s.classList.remove('active'));
+        dots.forEach(d => d.classList.remove('active'));
+
+        slides[i].classList.add('active');
+        dots[i].classList.add('active');
+        current = i;
     }
-    
-    // Function to show next slide
-    function nextSlide() {
-        const next = (currentSlide + 1) % slides.length;
-        showSlide(next);
-    }
-    
-    // Auto-slide every 5 seconds
-    function startAutoSlide() {
-        autoSlideInterval = setInterval(nextSlide, 5000);
-    }
-    
-    // Stop auto-slide
-    function stopAutoSlide() {
-        clearInterval(autoSlideInterval);
-    }
-    
-    // Dot click handlers
-    dots.forEach(dot => {
-        dot.addEventListener('click', function() {
-            const slideIndex = parseInt(this.getAttribute('data-slide'));
-            showSlide(slideIndex);
-            stopAutoSlide();
-            startAutoSlide(); // Restart auto-slide after manual interaction
-        });
+
+    dots.forEach(d => {
+        d.onclick = () => show(Number(d.dataset.slide));
     });
-    
-    // Touch swipe support for mobile
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    slider.addEventListener('touchstart', function(e) {
-        touchStartX = e.changedTouches[0].screenX;
-        stopAutoSlide();
-    });
-    
-    slider.addEventListener('touchend', function(e) {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-        startAutoSlide();
-    });
-    
-    function handleSwipe() {
-        const swipeThreshold = 50;
-        const diff = touchStartX - touchEndX;
-        
-        if (Math.abs(diff) > swipeThreshold) {
-            if (diff > 0) {
-                // Swipe left - next slide
-                nextSlide();
-            } else {
-                // Swipe right - previous slide
-                const prev = (currentSlide - 1 + slides.length) % slides.length;
-                showSlide(prev);
-            }
-        }
-    }
-    
-    // Start auto-slide
-    startAutoSlide();
-    
-    // Pause auto-slide when page is not visible
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-            stopAutoSlide();
-        } else {
-            startAutoSlide();
-        }
-    });
+
+    setInterval(() => show((current + 1) % slides.length), 5000);
 });
 </script>
+
 {% endblock %}
-        
+    
