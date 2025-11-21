@@ -3,18 +3,16 @@ from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from db import get_db
-from config import BOT_TOKEN
 import os
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
-BOTUSERNAME = os.getenv("BOTUSERNAME", "YOUR_BOT_USERNAME")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN")
 
-# ----------- PAGE ROUTE -----------
+# ----------- PAGE ROUTE (optional: support modal page, adjust as needed) -----------
 @router.get("/support", response_class=HTMLResponse)
 async def support_page(request: Request):
-    # Render support.html or modal
-    return templates.TemplateResponse("support.html", {"request": request, "botusername": BOTUSERNAME})
+    return templates.TemplateResponse("support.html", {"request": request, "bot_token": BOT_TOKEN})
 
 # ----------- CONTACT/SUPPORT MESSAGE -----------
 @router.post("/support/message")
@@ -25,7 +23,7 @@ async def submit_support_message(
     telegram_username: str = Form(None),
     message: str = Form(...)
 ):
-    db = getdb()
+    db = get_db()
     if db is None:
         return JSONResponse({"success": False, "error": "Database not connected"}, status_code=500)
 
@@ -53,7 +51,7 @@ async def send_chat_message(request: Request):
     if not message:
         return JSONResponse({"success": False, "error": "Message is empty"}, status_code=400)
 
-    db = getdb()
+    db = get_db()
     if db is None:
         return JSONResponse({"success": False, "error": "Database not connected"}, status_code=500)
 
@@ -69,7 +67,7 @@ async def send_chat_message(request: Request):
 # ----------- LIVE GROUP CHAT: FETCH MESSAGES -----------
 @router.get("/support/chat/fetch")
 async def fetch_chat_messages(request: Request):
-    db = getdb()
+    db = get_db()
     if db is None:
         return JSONResponse({"success": False, "error": "Database not connected"}, status_code=500)
 
@@ -81,6 +79,12 @@ async def fetch_chat_messages(request: Request):
             "message": doc.get("message", ""),
             "timestamp": doc.get("timestamp").isoformat() if doc.get("timestamp") else ""
         })
-    # Use chronological order
     return JSONResponse({"success": True, "messages": messages[::-1]})
+
+# ----------- ADMIN VIEW: SUPPORT MESSAGES -----------
+@router.get("/admin/support/messages", response_class=HTMLResponse)
+async def admin_support_messages(request: Request):
+    db = get_db()
+    messages = await db["support_messages"].find().sort("timestamp", -1).to_list(100)
+    return templates.TemplateResponse("admin_support_messages.html", {"request": request, "messages": messages})
     
