@@ -51,8 +51,7 @@
   .movie-poster-wrap img {
     width: 100%;
     height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
+    object-fit: contain;   /* full poster visible, no crop */
     display: block;
   }
 
@@ -184,7 +183,7 @@
           {% if movie and movie.poster_path %}
             <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }} poster">
           {% else %}
-            <div style="width:100%;aspect-ratio:16/9;
+            <div style="width:100%;
                         background:radial-gradient(circle at top,#1d4ed8,#020617);">
             </div>
           {% endif %}
@@ -232,6 +231,7 @@
             {% endif %}
           </div>
         </div>
+
       </div>
     </div>
   </article>
