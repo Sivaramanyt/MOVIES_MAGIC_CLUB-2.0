@@ -325,308 +325,98 @@
         </div>
     </article>
 
-    <!-- Trending now (no See more) -->
-    <article class="card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">Trending now</div>
-                <div class="card-sub">Popular across Movies Magic Club.</div>
-            </div>
-        </div>
+    <!-- Trending Now -->
+<div class="section-title">Trending now</div>
+<div class="hscroll-outer">
+  <div class="poster-hscroll" id="trending-poster-row">
+    {% for movie in trending_movies %}
+      <div class="poster-card">
+        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
+        <div>{{ movie.title }}</div>
+        <div style="font-size:12px;color:#b4c8eb;">{{ movie.year }} · {{ movie.quality or '' }}<br>{{ movie.category or '' }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 
-        <div class="horizontal-scroll">
-            {% if latest_movies and latest_movies|length > 0 %}
-                {% for m in latest_movies %}
-                <a href="/movie/{{ m.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if m.poster_path %}
-                                <img src="{{ url_for('static', path=m.poster_path) }}"
-                                     alt="{{ m.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ m.title }}</div>
-                        <div class="tile-meta">
-                            {{ m.year or "" }}{% if m.quality %} · {{ m.quality }}{% endif %}
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(8) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Trending {{ i + 1 }}</div>
-                    <div class="tile-meta">HD · 2024 · Tamil</div>
-                </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-    </article>
+<!-- All Movies -->
+<div class="section-title">All movies</div>
+<div class="hscroll-outer">
+  <div class="poster-hscroll" id="allmovies-poster-row">
+    {% for movie in all_movies %}
+      <div class="poster-card">
+        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
+        <div>{{ movie.title }}</div>
+        <div style="font-size:12px;color:#b4c8eb;">{{ movie.year }}<br>{{ movie.category }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 
-    <!-- All movies (See more on left) -->
-    <article class="card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">
-                    All movies
-                    <a href="/movies/browse"
-                       style="margin-left:8px; font-size:11px; color:#a5b4fc; text-decoration:none;">
-                        See more →
-                    </a>
-                </div>
-                <div class="card-sub">Recently added across all languages.</div>
-            </div>
-        </div>
+<!-- Tamil Movies -->
+<div class="section-title">Tamil movies</div>
+<div class="hscroll-outer">
+  <div class="poster-hscroll" id="tamilmovies-poster-row">
+    {% for movie in tamil_movies %}
+      <div class="poster-card">
+        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
+        <div>{{ movie.title }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 
-        <div class="horizontal-scroll">
-            {% if latest_movies and latest_movies|length > 0 %}
-                {% for m in latest_movies %}
-                <a href="/movie/{{ m.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if m.poster_path %}
-                                <img src="{{ url_for('static', path=m.poster_path) }}"
-                                     alt="{{ m.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ m.title }}</div>
-                        <div class="tile-meta">
-                            {{ m.quality or "HD" }} · {{ m.year or "" }}
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(6) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Movie {{ i + 1 }}</div>
-                    <div class="tile-meta">HD · 2024</div>
-                </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-    </article>
+<!-- Telugu Movies -->
+<div class="section-title">Telugu movies</div>
+<div class="hscroll-outer">
+  <div class="poster-hscroll" id="telugumovies-poster-row">
+    {% for movie in telugu_movies %}
+      <div class="poster-card">
+        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
+        <div>{{ movie.title }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 
-    <!-- Tamil movies -->
-    <article class="card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">
-                    Tamil movies
-                    <a href="/movies/browse" style="margin-left:8px; font-size:11px; color:#a5b4fc; text-decoration:none;">
-                        See more →
-                    </a>
-                </div>
-                <div class="card-sub">Hand-picked Tamil releases.</div>
-            </div>
-        </div>
+<!-- Hindi Movies -->
+<div class="section-title">Hindi movies</div>
+<div class="hscroll-outer">
+  <div class="poster-hscroll" id="hindimovies-poster-row">
+    {% for movie in hindi_movies %}
+      <div class="poster-card">
+        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
+        <div>{{ movie.title }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 
-        <div class="horizontal-scroll">
-            {% if tamil_movies and tamil_movies|length > 0 %}
-                {% for m in tamil_movies %}
-                <a href="/movie/{{ m.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if m.poster_path %}
-                                <img src="{{ url_for('static', path=m.poster_path) }}"
-                                     alt="{{ m.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ m.title }}</div>
-                        <div class="tile-meta">
-                            {{ m.quality or "HD" }} · {{ m.year or "" }} · Tamil
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(8) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Tamil Movie {{ i + 1 }}</div>
-                    <div class="tile-meta">HD · 2023 · Tamil</div>
-                </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-    </article>
+<!-- Malayalam Movies -->
+<div class="section-title">Malayalam movies</div>
+<div class="hscroll-outer">
+  <div class="poster-hscroll" id="malayalammovies-poster-row">
+    {% for movie in malayalam_movies %}
+      <div class="poster-card">
+        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
+        <div>{{ movie.title }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 
-    <!-- Telugu movies -->
-    <article class="card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">
-                    Telugu movies
-                    <a href="/movies/browse" style="margin-left:8px; font-size:11px; color:#a5b4fc; text-decoration:none;">
-                        See more →
-                    </a>
-                </div>
-                <div class="card-sub">Top picks in Telugu.</div>
-            </div>
-        </div>
-
-        <div class="horizontal-scroll">
-            {% if telugu_movies and telugu_movies|length > 0 %}
-                {% for m in telugu_movies %}
-                <a href="/movie/{{ m.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if m.poster_path %}
-                                <img src="{{ url_for('static', path=m.poster_path) }}"
-                                     alt="{{ m.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ m.title }}</div>
-                        <div class="tile-meta">
-                            {{ m.quality or "HD" }} · {{ m.year or "" }} · Telugu
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(8) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Telugu Movie {{ i + 1 }}</div>
-                    <div class="tile-meta">HD · 2023 · Telugu</div>
-                </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-    </article>
-
-    <!-- Hindi movies -->
-    <article class="card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">
-                    Hindi movies
-                    <a href="/movies/browse" style="margin-left:8px; font-size:11px; color:#a5b4fc; text-decoration:none;">
-                        See more →
-                    </a>
-                </div>
-                <div class="card-sub">Bollywood and beyond.</div>
-            </div>
-        </div>
-
-        <div class="horizontal-scroll">
-            {% if hindi_movies and hindi_movies|length > 0 %}
-                {% for m in hindi_movies %}
-                <a href="/movie/{{ m.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if m.poster_path %}
-                                <img src="{{ url_for('static', path=m.poster_path) }}"
-                                     alt="{{ m.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ m.title }}</div>
-                        <div class="tile-meta">
-                            {{ m.quality or "HD" }} · {{ m.year or "" }} · Hindi
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(8) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Hindi Movie {{ i + 1 }}</div>
-                    <div class="tile-meta">HD · 2023 · Hindi</div>
-                </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-    </article>
-
-    <!-- Malayalam movies -->
-    <article class="card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">
-                    Malayalam movies
-                    <a href="/movies/browse" style="margin-left:8px; font-size:11px; color:#a5b4fc; text-decoration:none;">
-                        See more →
-                    </a>
-                </div>
-                <div class="card-sub">Critically acclaimed picks.</div>
-            </div>
-        </div>
-
-        <div class="horizontal-scroll">
-            {% if malayalam_movies and malayalam_movies|length > 0 %}
-                {% for m in malayalam_movies %}
-                <a href="/movie/{{ m.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if m.poster_path %}
-                                <img src="{{ url_for('static', path=m.poster_path) }}"
-                                     alt="{{ m.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ m.title }}</div>
-                        <div class="tile-meta">
-                            {{ m.quality or "HD" }} · {{ m.year or "" }} · Malayalam
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(8) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Malayalam {{ i + 1 }}</div>
-                    <div class="tile-meta">HD · 2023 · Malayalam</div>
-                </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-    </article>
-
-    <!-- Kannada movies -->
-    <article class="card">
-        <div class="card-header">
-            <div>
-                <div class="card-title">
-                    Kannada movies
-                    <a href="/movies/browse" style="margin-left:8px; font-size:11px; color:#a5b4fc; text-decoration:none;">
-                        See more →
-                    </a>
-                </div>
-                <div class="card-sub">Latest from Sandalwood.</div>
-            </div>
-        </div>
-
-        <div class="horizontal-scroll">
-            {% if kannada_movies and kannada_movies|length > 0 %}
-                {% for m in kannada_movies %}
-                <a href="/movie/{{ m.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if m.poster_path %}
-                                <img src="{{ url_for('static', path=m.poster_path) }}"
-                                     alt="{{ m.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ m.title }}</div>
-                        <div class="tile-meta">
-                            {{ m.quality or "HD" }} · {{ m.year or "" }} · Kannada
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(8) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Kannada {{ i + 1 }}</div>
-                    <div class="tile-meta">HD · 2023 · Kannada</div>
-                </div>
-                {% endfor %}
-            {% endif %}
-        </div>
+<!-- Kannada Movies -->
+<div class="section-title">Kannada movies</div>
+<div class="hscroll-outer">
+  <div class="poster-hscroll" id="kannadamovies-poster-row">
+    {% for movie in kannada_movies %}
+      <div class="poster-card">
+        <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }}">
+        <div>{{ movie.title }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
     </article>
 
 </section>
