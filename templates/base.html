@@ -685,6 +685,24 @@ function sendChatMessage() {
   }
 }
 
+function fetchChatMessages() {
+  fetch('/support/chat/fetch')
+    .then(response => response.json())
+    .then(data => {
+      const chatArea = document.getElementById("chatMessages");
+      chatArea.innerHTML = "";
+      for (const msg of data.messages) {
+        const div = document.createElement("div");
+        if (msg.is_admin) {
+          div.innerHTML = `<span style="color:#f59e42"><b>[Admin]</b></span> ${msg.name}: ${msg.message}`;
+        } else {
+          div.innerHTML = `${msg.name}: ${msg.message}`;
+        }
+        chatArea.appendChild(div);
+      }
+    });
+}
+    
 async function submitSupportMessage(event) {
   event.preventDefault();
   const form = event.target;
