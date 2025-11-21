@@ -368,91 +368,74 @@
     <article class="card">
         <div class="card-header">
             <div>
-                <div class="card-title">
-                    All movies
-                    <a href="/movies/browse"
-                       style="margin-left:8px; font-size:11px; color:#a5b4fc; text-decoration:none;">
-                        See more →
-                    </a>
-                </div>
-                <div class="card-sub">Recently added across all languages.</div>
+                <h2 class="card-title">All web series</h2>
+                <p class="card-sub">
+                    Popular across Movies Magic Club this week.
+                </p>
             </div>
+
+            <a href="/series/browse" class="card-link">
+                See more →
+            </a>
         </div>
 
-        <div class="horizontal-scroll">
-            {% if latest_movies and latest_movies|length > 0 %}
-                {% for m in latest_movies %}
-                <a href="/movie/{{ m.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if m.poster_path %}
-                                <img src="{{ url_for('static', path=m.poster_path) }}"
-                                     alt="{{ m.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ m.title }}</div>
-                        <div class="tile-meta">
-                            {{ m.quality or "HD" }} · {{ m.year or "" }}
-                        </div>
+        <div class="row-shell">
+            {% for s in latest_series %}
+                <article class="series-card">
+                    <a href="/series/{{ s.id }}" class="series-poster">
+                        {% if s.poster_path %}
+                            <img src="{{ s.poster_path }}" alt="{{ s.title }} poster">
+                        {% endif %}
+                    </a>
+                    <a href="/series/{{ s.id }}" class="series-title">
+                        {{ s.title }}
+                    </a>
+                    <div class="series-meta">
+                        {{ s.year or "" }}
+                        {% if s.quality %} · {{ s.quality }}{% endif %}
+                        {% if s.category %} · {{ s.category }}{% endif %}
                     </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(6) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Movie {{ i + 1 }}</div>
-                    <div class="tile-meta">HD · 2024</div>
-                </div>
-                {% endfor %}
-            {% endif %}
+                </article>
+            {% endfor %}
         </div>
-    </article>
+    </article>    
 
     <!-- Tamil movies -->
     <article class="card">
         <div class="card-header">
             <div>
-                <div class="card-title">
-                    Tamil movies
-                    <a href="/movies/browse" style="margin-left:8px; font-size:11px; color:#a5b4fc; text-decoration:none;">
-                        See more →
-                    </a>
-                </div>
-                <div class="card-sub">Hand-picked Tamil releases.</div>
+                <h2 class="card-title">All web series</h2>
+                <p class="card-sub">
+                    Popular across Movies Magic Club this week.
+                </p>
             </div>
+
+            <a href="/series/browse" class="card-link">
+                See more →
+            </a>
         </div>
 
-        <div class="horizontal-scroll">
-            {% if tamil_movies and tamil_movies|length > 0 %}
-                {% for m in tamil_movies %}
-                <a href="/movie/{{ m.id }}" class="tile-link">
-                    <div class="tile">
-                        <div class="tile-poster">
-                            {% if m.poster_path %}
-                                <img src="{{ url_for('static', path=m.poster_path) }}"
-                                     alt="{{ m.title }} poster">
-                            {% endif %}
-                        </div>
-                        <div class="tile-title">{{ m.title }}</div>
-                        <div class="tile-meta">
-                            {{ m.quality or "HD" }} · {{ m.year or "" }} · Tamil
-                        </div>
+        <div class="row-shell">
+            {% for s in latest_series %}
+                <article class="series-card">
+                    <a href="/series/{{ s.id }}" class="series-poster">
+                        {% if s.poster_path %}
+                            <img src="{{ s.poster_path }}" alt="{{ s.title }} poster">
+                        {% endif %}
+                    </a>
+                    <a href="/series/{{ s.id }}" class="series-title">
+                        {{ s.title }}
+                    </a>
+                    <div class="series-meta">
+                        {{ s.year or "" }}
+                        {% if s.quality %} · {{ s.quality }}{% endif %}
+                        {% if s.category %} · {{ s.category }}{% endif %}
                     </div>
-                </a>
-                {% endfor %}
-            {% else %}
-                {% for i in range(8) %}
-                <div class="tile">
-                    <div class="tile-poster"></div>
-                    <div class="tile-title">Tamil Movie {{ i + 1 }}</div>
-                    <div class="tile-meta">HD · 2023 · Tamil</div>
-                </div>
-                {% endfor %}
-            {% endif %}
+                </article>
+            {% endfor %}
         </div>
     </article>
-
+    
     <!-- Telugu movies -->
     <article class="card">
         <div class="card-header">
