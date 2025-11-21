@@ -87,4 +87,28 @@ async def admin_support_messages(request: Request):
     db = get_db()
     messages = await db["support_messages"].find().sort("timestamp", -1).to_list(100)
     return templates.TemplateResponse("admin_support_messages.html", {"request": request, "messages": messages})
+
+@router.post("/support/chat/send")
+async def send_chat_message(request: Request):
+    data = await request.json()
+    name = data.get("name", "Anonymous")
+    message = data.get("message", "").strip()
+    is_admin = data.get("is_admin", False)
+
+    if not message:
+        return JSONResponse({"success": False, "error": "Message is empty"}, status_code=400)
+
+    db = get_db()
+    if db is None:
+        return JSONResponse({"success": False, "error": "Database not connected"}, status_code=500)
+
+    chat_doc = {
+        "name": name,
+        "message": message,
+        "is_admin": is_admin,
+        "timestamp": datetime.utcnow(),
+        "ip": request.client.host
+    }
+    result = await db["support_chat"].insert_one(chat_doc)
+    return JSONResponse({"success": True, "message": "Message sent", "id": str(result.inserted_id)})
     
