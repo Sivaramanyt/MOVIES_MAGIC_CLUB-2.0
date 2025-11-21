@@ -176,7 +176,7 @@
         position: fixed;
         bottom: 20px;
         right: 20px;
-        width: 100%;
+        width: 56px;
         height: 56px;
         border-radius: 50%;
         background: linear-gradient(135deg, #06b6d4, #3b82f6);
@@ -282,7 +282,7 @@
     .support-options {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
     }
     
     .support-option-btn {
@@ -555,12 +555,12 @@
                     </button>
 
                     <!-- 3. Live chat (Telegram group) -->
-                    <button class="support-option-btn" onclick="openLiveChat()">
+                    <button class="support-option-btn" onclick="showMessageForm()">
                         <div class="support-option-icon">💬</div>
                         <div class="support-option-texts">
                             <div class="support-option-text">Live chat</div>
                             <div class="support-option-sub">
-                                Chat with our team and other users on Telegram.
+                                Type your message here, we’ll reply from our support inbox.
                             </div>
                         </div>
                         <span class="support-arrow">›</span>
@@ -688,10 +688,6 @@
             document.getElementById('supportSuccess').style.display = 'none';
         }
 
-        // NEW: open Telegram live chat group directly
-        function openLiveChat() {
-            window.open('https://t.me/YOUR_LIVE_CHAT_GROUP', '_blank');
-        }
 
         async function submitSupportMessage(event) {
             event.preventDefault();
