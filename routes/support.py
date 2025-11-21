@@ -2,7 +2,7 @@ from datetime import datetime
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from db import getdb
+from db import get_db
 from config import BOTTOKEN
 import os
 
