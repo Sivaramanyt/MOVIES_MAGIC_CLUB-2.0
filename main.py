@@ -18,6 +18,7 @@ pyrou.MIN_CHANNEL_ID = -1_007_852_516_352  # allow all new channels
 # ---- END FIX ----
 
 from motor.motor_asyncio import AsyncIOMotorClient
+import requests  # for Telegram HTTP getFile
 
 from db import connect_to_mongo, close_mongo_connection
 
@@ -77,7 +78,7 @@ bot = Client(
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
-    in_memory=True,  # good for Koyeb / ephemeral FS
+    in_memory=True,
 )
 
 # Separate Mongo client for poster collection
@@ -102,10 +103,7 @@ async def start_command(client, message):
 
 @app.on_event("startup")
 async def on_startup():
-    # Use existing DB helpers (no args)
     await connect_to_mongo()
-
-    # Start Telegram bot
     await bot.start()
     print("🚀 FastAPI app and bot startup complete!")
 
@@ -147,7 +145,7 @@ async def upload_poster(
     """
     1. Save uploaded image to a temp file.
     2. Send to Telegram channel as photo.
-    3. Build public Telegram file URL.
+    3. Call Telegram HTTP getFile to build file URL.
     4. Save record to MongoDB.
     """
     tmp_path = None
@@ -156,13 +154,13 @@ async def upload_poster(
         # 1) Save upload to temp file
         suffix = os.path.splitext(image.filename or "")[-1] or ".jpg"
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmpfile:
-            content = await image.read()          # async read from UploadFile
+            content = await image.read()
             tmpfile.write(content)
             tmp_path = tmpfile.name
 
         print(f"[DEBUG] Uploading image to Telegram: {tmp_path}")
 
-        # 2) Send photo to channel (CHANNEL_ID already int from config)
+        # 2) Send photo to channel
         tg_msg = await bot.send_photo(
             CHANNEL_ID,
             tmp_path,
@@ -178,9 +176,18 @@ async def upload_poster(
 
         print(f"[DEBUG] Telegram file_id: {file_id}")
 
-        # 4) Resolve file path and build URL
-        file_info = await bot.get_file(file_id)
-        image_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
+        # 4) Use Telegram HTTP Bot API getFile (avoid Pyrogram async-generator bug)
+        resp = requests.get(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/getFile",
+            params={"file_id": file_id},
+            timeout=20,
+        )
+        data = resp.json()
+        if not data.get("ok"):
+            raise RuntimeError(f"getFile failed: {data}")
+
+        file_path = data["result"]["file_path"]
+        image_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
         print(f"[DEBUG] Telegram image URL: {image_url}")
 
         # 5) Save movie record in Mongo
@@ -209,7 +216,6 @@ async def upload_poster(
         )
 
     except BadRequest as e:
-        # Telegram Bot API / Pyrogram error (e.g. CHANNEL_INVALID)
         print(f"[ERROR] Poster upload failed (BadRequest): {e.MESSAGE}")
         try:
             if tmp_path and os.path.exists(tmp_path):
@@ -235,13 +241,12 @@ async def upload_poster(
 
 
 # -------------------------------------------------------------------
-# Debug endpoints to verify config & channel access
+# Debug endpoints
 # -------------------------------------------------------------------
 
 
 @app.get("/debug/config")
 async def debug_config():
-    # Returns only first chars of token for safety
     return {
         "channel_id": CHANNEL_ID,
         "bot_token_start": BOT_TOKEN[:10],
@@ -251,11 +256,6 @@ async def debug_config():
 
 @app.get("/debug/channel")
 async def debug_channel():
-    """
-    - If ok == True: bot can see the channel with this CHANNEL_ID.
-    - If ok == False and message == 'PEER_ID_INVALID' or 'chat not found':
-      token / channel / membership mismatch (MIN_* patch or admin issue).
-    """
     try:
         chat = await bot.get_chat(CHANNEL_ID)
         return {
