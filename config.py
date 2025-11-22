@@ -6,7 +6,7 @@ API_HASH = os.getenv("API_HASH", "")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
 # Channel ID (full id from Pyrogram, negative, like -1003316755829)
-CHANNEL_ID = -1003316755829  # <-- unga actual id here
+CHANNEL_ID = -1003467686120  # <-- unga actual id here
 
 # Verification defaults
 VERIFICATION_DEFAULT_ENABLED = True
