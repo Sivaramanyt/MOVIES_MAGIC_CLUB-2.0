@@ -5,17 +5,8 @@ API_ID = int(os.getenv("API_ID", "0"))
 API_HASH = os.getenv("API_HASH", "")
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 
-# Channel ID where posters will be uploaded (must be like -1001234567890)
-_raw_channel_id = os.getenv("CHANNEL_ID", "-1003316755829").strip()
-if not _raw_channel_id:
-    raise RuntimeError("❌ CHANNEL_ID env variable not set")
-
-try:
-    CHANNEL_ID = int(_raw_channel_id)
-except ValueError:
-    raise RuntimeError(
-        f"❌ CHANNEL_ID must be a number like -1001234567890, got: {_raw_channel_id!r}"
-    )
+# Channel ID (full id from Pyrogram, negative, like -1003316755829)
+CHANNEL_ID = -1003316755829  # <-- unga actual id here
 
 # Verification defaults
 VERIFICATION_DEFAULT_ENABLED = True
@@ -36,3 +27,4 @@ MONGO_DB = os.getenv("MONGO_DB", "movies_magic_club")
 # Basic sanity check for required vars
 if not API_ID or not API_HASH or not BOT_TOKEN:
     print("❌ Please set API_ID, API_HASH, BOT_TOKEN as env variables")
+    
