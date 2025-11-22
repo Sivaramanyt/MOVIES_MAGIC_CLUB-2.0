@@ -93,7 +93,7 @@ async def upload_poster(
             tmp_path = tmpfile.name
 
         print(f"[DEBUG] Uploading image to Telegram: {tmp_path}")
-        tg_msg = await bot.send_photo(int(CHANNEL_ID), tmp_path, caption=f"{movie_title}\n{description}")
+        tg_msg = await bot.send_photo(CHANNEL_ID), tmp_path, caption=f"{movie_title}\n{description}")
         file_id = tg_msg.photo.file_id
         print(f"[DEBUG] Telegram file_id: {file_id}")
 
