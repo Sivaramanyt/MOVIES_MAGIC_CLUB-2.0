@@ -17,6 +17,10 @@ SHORTLINK_URL = os.getenv("SHORTLINK_URL", "")
 # Add this line
 BOT_USERNAME = os.getenv("BOT_USERNAME", "Movie_magic_club_bot") # Without @
 
+MONGO_URI = os.getenv("MONGO_URI", "")
+MONGO_DB = os.getenv("MONGO_DB", "movies_magic_club")
+
+
 if not API_ID or not API_HASH or not BOT_TOKEN:
     print("❌ Please set API_ID, API_HASH, BOT_TOKEN as env variables")
     
