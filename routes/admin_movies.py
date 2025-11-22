@@ -3,22 +3,23 @@
 import os
 from datetime import datetime
 from typing import List
-from uuid import uuid4
+from uuid import uuid4  # still imported in case you use elsewhere, ok to remove if unused
 
 from bson import ObjectId
 from fastapi import APIRouter, Request, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+import httpx  # NEW: to call /api/poster/upload from inside the app
+
 from db import get_db
 from .admin_auth import is_admin
 
 router = APIRouter()
+
 templates = Jinja2Templates(directory="templates")
 
-
 # ---------- MOVIES ADMIN: LIST + SEARCH + ADD ----------
-
 
 @router.get("/admin/movies", response_class=HTMLResponse)
 async def admin_movies_dashboard(request: Request, message: str = ""):
@@ -26,6 +27,7 @@ async def admin_movies_dashboard(request: Request, message: str = ""):
         return RedirectResponse("/admin/login", status_code=303)
 
     q = request.query_params.get("q", "").strip()
+
     db = get_db()
     if db is None:
         return templates.TemplateResponse(
@@ -58,6 +60,7 @@ async def admin_movies_dashboard(request: Request, message: str = ""):
         query = {"title": {"$regex": q, "$options": "i"}}
 
     cursor = movies_col.find(query).sort("_id", -1).limit(50)
+
     movies = [
         {
             "id": str(doc.get("_id")),
@@ -65,6 +68,7 @@ async def admin_movies_dashboard(request: Request, message: str = ""):
             "year": doc.get("year"),
             "language": doc.get("language"),
             "quality": doc.get("quality", "HD"),
+            "poster_path": doc.get("poster_path"),  # may now be full Telegram URL
         }
         async for doc in cursor
     ]
@@ -101,6 +105,7 @@ async def admin_create_movie(
 ):
     """
     Create movie: primary language = first checked language, others in languages[].
+    Poster will be uploaded to Telegram channel; MongoDB stores only Telegram URL.
     """
     if not is_admin(request):
         return RedirectResponse("/admin/login", status_code=303)
@@ -112,20 +117,42 @@ async def admin_create_movie(
             status_code=303,
         )
 
+    # --- NEW: upload poster to Telegram via internal API, no local static file ---
     poster_path = None
     if poster and poster.filename:
-        poster_dir = os.path.join("static", "posters")
-        os.makedirs(poster_dir, exist_ok=True)
+        try:
+            # Read file content once
+            content = await poster.read()
 
-        ext = os.path.splitext(poster.filename)[1].lower()
-        filename = f"{uuid4().hex}{ext}"
-        filepath = os.path.join(poster_dir, filename)
+            async with httpx.AsyncClient() as client:
+                files = {
+                    "image": (
+                        poster.filename,
+                        content,
+                        poster.content_type or "image/jpeg",
+                    )
+                }
+                data = {
+                    "movie_title": title,
+                    "description": description or "",
+                }
+                resp = await client.post(
+                    "http://127.0.0.1:8000/api/poster/upload",
+                    data=data,
+                    files=files,
+                    timeout=30,
+                )
 
-        content = await poster.read()
-        with open(filepath, "wb") as f:
-            f.write(content)
+            resp_data = resp.json()
+            if resp_data.get("success"):
+                poster_path = resp_data.get("url")  # Telegram CDN URL
+                print(f"[ADMIN] Poster uploaded via API, url={poster_path}")
+            else:
+                print(f"[ADMIN] Poster upload API failed: {resp_data}")
+        except Exception as e:
+            print(f"[ADMIN] Poster upload error: {e}")
 
-        poster_path = f"posters/{filename}"
+    # --- END NEW poster handling ---
 
     year_int = None
     if year.strip():
@@ -145,7 +172,7 @@ async def admin_create_movie(
         "category": category,
         "watch_url": watch_url,
         "download_url": download_url,
-        "poster_path": poster_path,
+        "poster_path": poster_path,  # now a Telegram URL (or None)
         "description": description,
         "created_at": datetime.utcnow(),
     }
@@ -159,7 +186,6 @@ async def admin_create_movie(
 
 
 # ---------- MOVIES ADMIN: EDIT + DELETE ----------
-
 
 @router.get("/admin/movies/{movie_id}/edit", response_class=HTMLResponse)
 async def admin_edit_movie_form(request: Request, movie_id: str):
@@ -200,8 +226,7 @@ async def admin_edit_movie_form(request: Request, movie_id: str):
     }
 
     return templates.TemplateResponse(
-        "admin_edit_movie.html",
-        {"request": request, "movie": movie_ctx},
+        "admin_edit_movie.html", {"request": request, "movie": movie_ctx}
     )
 
 
@@ -258,17 +283,39 @@ async def admin_edit_movie(
     else:
         update["year"] = None
 
+    # --- NEW: if new poster uploaded, push to Telegram and update poster_path URL ---
     if poster and poster.filename:
-        poster_dir = os.path.join("static", "posters")
-        os.makedirs(poster_dir, exist_ok=True)
-        ext = os.path.splitext(poster.filename)[1].lower()
-        filename = f"{uuid4().hex}{ext}"
-        filepath = os.path.join(poster_dir, filename)
-        content = await poster.read()
-        with open(filepath, "wb") as f:
-            f.write(content)
-        poster_path = f"posters/{filename}"
-        update["poster_path"] = poster_path
+        try:
+            content = await poster.read()
+            async with httpx.AsyncClient() as client:
+                files = {
+                    "image": (
+                        poster.filename,
+                        content,
+                        poster.content_type or "image/jpeg",
+                    )
+                }
+                data = {
+                    "movie_title": title,
+                    "description": description or "",
+                }
+                resp = await client.post(
+                    "http://127.0.0.1:8000/api/poster/upload",
+                    data=data,
+                    files=files,
+                    timeout=30,
+                )
+
+            resp_data = resp.json()
+            if resp_data.get("success"):
+                poster_path = resp_data.get("url")
+                update["poster_path"] = poster_path
+                print(f"[ADMIN] Poster (edit) uploaded via API, url={poster_path}")
+            else:
+                print(f"[ADMIN] Poster (edit) upload API failed: {resp_data}")
+        except Exception as e:
+            print(f"[ADMIN] Poster (edit) upload error: {e}")
+    # --- END NEW poster handling ---
 
     await db["movies"].update_one({"_id": oid}, {"$set": update})
 
@@ -298,4 +345,4 @@ async def admin_delete_movie(request: Request, movie_id: str):
         msg = "Failed+to+delete+movie"
 
     return RedirectResponse(f"/admin/movies?message={msg}", status_code=303)
-        
+    
