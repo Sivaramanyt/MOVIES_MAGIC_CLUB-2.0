@@ -156,7 +156,7 @@ async def upload_poster(
         # 1) Save upload to temp file
         suffix = os.path.splitext(image.filename or "")[-1] or ".jpg"
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmpfile:
-            content = await image.read()
+            content = await image.read()          # async read from UploadFile
             tmpfile.write(content)
             tmp_path = tmpfile.name
 
@@ -209,7 +209,7 @@ async def upload_poster(
         )
 
     except BadRequest as e:
-        # This is where PEER_ID_INVALID would appear
+        # Telegram Bot API / Pyrogram error (e.g. CHANNEL_INVALID)
         print(f"[ERROR] Poster upload failed (BadRequest): {e.MESSAGE}")
         try:
             if tmp_path and os.path.exists(tmp_path):
@@ -254,7 +254,7 @@ async def debug_channel():
     """
     - If ok == True: bot can see the channel with this CHANNEL_ID.
     - If ok == False and message == 'PEER_ID_INVALID' or 'chat not found':
-      token / channel / membership mismatch (before our MIN_* patch).
+      token / channel / membership mismatch (MIN_* patch or admin issue).
     """
     try:
         chat = await bot.get_chat(CHANNEL_ID)
@@ -287,3 +287,4 @@ if __name__ == "__main__":
 
     port = int(os.getenv("PORT", "8000"))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+    
