@@ -1,5 +1,4 @@
 import os
-import asyncio
 import tempfile
 
 from fastapi import FastAPI, File, Form, UploadFile
@@ -70,7 +69,7 @@ async def start_command(client, message):
 @app.on_event("startup")
 async def on_startup():
     await connect_to_mongo()
-    await bot.start()  # <--- Only this! No idle, no task!
+    await bot.start()
     print("🚀 FastAPI app and bot startup complete!")
 
 @app.on_event("shutdown")
@@ -98,6 +97,7 @@ async def upload_poster(
         file_id = tg_msg.photo.file_id
         print(f"[DEBUG] Telegram file_id: {file_id}")
 
+        # --- CORRECT USAGE ---
         file_info = await bot.get_file(file_id)
         image_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
         print(f"[DEBUG] Telegram image URL: {image_url}")
