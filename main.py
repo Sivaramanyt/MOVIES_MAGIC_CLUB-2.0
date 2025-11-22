@@ -26,7 +26,7 @@ from routes.admin_verification import router as admin_verification_router
 from routes.support import router as support_router
 from routes.legal import router as legal_router
 
-from config import API_ID, API_HASH, BOT_TOKEN, CHANNEL_ID, MONGO_URI, MONGO_DB  # updated import
+from config import API_ID, API_HASH, BOT_TOKEN, CHANNEL_ID, MONGO_URI, MONGO_DB
 
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-this-secret")
 
@@ -49,14 +49,16 @@ app.include_router(admin_verification_router)
 app.include_router(support_router)
 app.include_router(legal_router)
 
-# ---------- Main Pyrogram Bot ----------
+# === Pyrogram Bot: SINGLE CLIENT (used for both bot and upload) ===
 bot = Client(
     "movie_webapp_bot",
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
-    in_memory=True  # session stored in RAM, no sqlite file
+    in_memory=True  # session stored in RAM
 )
+mongo_client = AsyncIOMotorClient(MONGO_URI)
+poster_db = mongo_client[MONGO_DB if MONGO_DB else "movies_magic_club"]
 
 @bot.on_message(filters.command("start") & filters.private)
 async def start_command(client, message):
@@ -74,30 +76,18 @@ async def run_bot():
     await bot.stop()
     print("🛑 Pyrogram bot stopped")
 
-# ---------- Poster Upload Integration ----------
-poster_client = Client(
-    "poster-uploader",
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
-    in_memory=True
-)
-poster_mongo = AsyncIOMotorClient(MONGO_URI)
-poster_db = poster_mongo[MONGO_DB if MONGO_DB else "movies_magic_club"]
-
 @app.on_event("startup")
 async def on_startup():
     await connect_to_mongo()
     asyncio.create_task(run_bot())
-    await poster_client.start()
-    print("🚀 FastAPI app and poster_client startup complete!")
+    print("🚀 FastAPI app and bot startup complete!")
 
 @app.on_event("shutdown")
 async def on_shutdown():
     await close_mongo_connection()
-    await poster_client.stop()
-    poster_mongo.close()
-    print("🔻 FastAPI app and poster_client shutting down!")
+    await bot.stop()
+    mongo_client.close()
+    print("🔻 FastAPI app and bot shutting down!")
 
 @app.post("/api/poster/upload")
 async def upload_poster(
@@ -113,11 +103,11 @@ async def upload_poster(
             tmp_path = tmpfile.name
 
         print(f"[DEBUG] Uploading image to Telegram: {tmp_path}")
-        tg_msg = await poster_client.send_photo(int(CHANNEL_ID), tmp_path, caption=f"{movie_title}\n{description}")
+        tg_msg = await bot.send_photo(int(CHANNEL_ID), tmp_path, caption=f"{movie_title}\n{description}")
         file_id = tg_msg.photo.file_id
         print(f"[DEBUG] Telegram file_id: {file_id}")
 
-        file_info = await poster_client.get_file(file_id)
+        file_info = await bot.get_file(file_id)
         image_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
         print(f"[DEBUG] Telegram image URL: {image_url}")
 
@@ -136,12 +126,10 @@ async def upload_poster(
         print(f"[ERROR] Poster upload failed: {e}")
         return JSONResponse({"success": False, "error": str(e)})
 
-# ---------- Root Message ----------
 @app.get("/")
 async def root():
     return {"message": "Movies Magic Club API is running."}
 
-# ---------- Uvicorn Entrypoint ----------
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
