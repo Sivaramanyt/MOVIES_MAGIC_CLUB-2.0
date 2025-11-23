@@ -272,7 +272,7 @@
             <div class="movie-hero-poster">
               {% if movie.poster_path %}
                 <a href="/movie/{{ movie.id }}" class="tile-link">
-                  <img src="{{ url_for('static', path=movie.poster_path) }}" alt="{{ movie.title }} poster">
+                  <img src="{{ movie.poster_path }}" alt="{{ movie.title }} poster">
                 </a>
               {% endif %}
             </div>
