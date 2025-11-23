@@ -165,6 +165,7 @@
     }
     .series-poster {
         border-radius: 16px;
+        aspect-ratio: 2 / 3;
         overflow: hidden;
         background: radial-gradient(circle at top, #1d4ed8, #020617);
         min-height: 160px;
@@ -191,6 +192,30 @@
         font-size: 11px;
         color: var(--text-muted);
     }
+    
+    .see-more-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      color: #020617;
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      box-shadow: 0 8px 20px rgba(248, 113, 113, 0.45);
+      border: none;
+   }
+
+   .see-more-btn:hover {
+     filter: brightness(1.07);
+   }
+
+   .see-more-btn:active {
+     transform: translateY(1px);
+     box-shadow: 0 4px 12px rgba(248, 113, 113, 0.35);
+   }
 </style>
 
 <section class="page-shell">
@@ -328,7 +353,7 @@
                 </p>
             </div>
 
-            <a href="/series/browse" class="card-link">
+            <a href="/series/browse" class="see-more-btn">
                 See more →
             </a>
         </div>
