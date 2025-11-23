@@ -24,7 +24,6 @@ async def home(request: Request):
 
     if db is not None:
         movies_col = db["movies"]
-        
         # ✅ FIX: Exclude series by filtering out documents with 'seasons' field
         cursor = movies_col.find({"seasons": {"$exists": False}}).sort("_id", -1).limit(5)
         latest_movies = [
@@ -40,7 +39,7 @@ async def home(request: Request):
             async for doc in cursor
         ]
 
-        # ✅ FIX: Also exclude series in language queries
+        # ✅ FIXED: Changed from "language" to "languages"
         async def fetch_by_language(lang: str, limit: int = 12):
             cur = (
                 movies_col
@@ -88,11 +87,11 @@ async def search_movies(request: Request, q: str = ""):
     db = get_db()
     movies: List[dict] = []
     if db is not None and q.strip():
-        # ✅ FIX: Exclude series from search results
+        # ✅ FIX: Exclude series from search
         cursor = db["movies"].find(
             {
                 "title": {"$regex": q, "$options": "i"},
-                "seasons": {"$exists": False}  # ✅ Exclude series
+                "seasons": {"$exists": False}
             }
         ).limit(30)
         movies = [
@@ -112,9 +111,23 @@ async def search_movies(request: Request, q: str = ""):
     }
     return templates.TemplateResponse("search.html", context)
 
-# Rest of your code stays the same...
 
-# ---------- BROWSE PAGES (SEE ALL) ----------
+@router.get("/legal", response_class=HTMLResponse)
+async def legal_page(request: Request):
+    return templates.TemplateResponse(
+        "legal.html",
+        {"request": request},
+    )
+
+
+@router.get("/robots.txt", response_class=PlainTextResponse)
+async def robots():
+    return """User-agent: *
+Disallow: /admin/
+Allow: /"""
+
+
+# ---------- LANGUAGE & GENRE MAP ----------
 
 LANGUAGE_MAP = {
     "tamil": "Tamil",
@@ -122,10 +135,89 @@ LANGUAGE_MAP = {
     "hindi": "Hindi",
     "malayalam": "Malayalam",
     "kannada": "Kannada",
+    "english": "English",
+}
+
+GENRE_MAP = {
+    "action": "Action",
+    "comedy": "Comedy",
+    "drama": "Drama",
+    "horror": "Horror",
+    "romance": "Romance",
+    "thriller": "Thriller",
+    "sci-fi": "Sci-Fi",
+    "fantasy": "Fantasy",
 }
 
 
-async def _build_movie_list(cursor):
+# ---------- BROWSE BY LANGUAGE ----------
+
+@router.get("/language/{lang_slug}", response_class=HTMLResponse)
+async def browse_by_language(request: Request, lang_slug: str):
+    db = get_db()
+    movies: List[dict] = []
+    lang_key = lang_slug.lower()
+    language = LANGUAGE_MAP.get(lang_key, lang_slug.title())
+
+    if db is not None:
+        cursor = (
+            db["movies"]
+            .find({
+                "languages": language,
+                "seasons": {"$exists": False}  # ✅ FIX: Exclude series
+            })
+            .sort("_id", -1)
+        )
+        movies = await _build_movie_list(cursor)
+
+    page_title = f"{language} movies"
+    page_subtitle = f"All {language} movies saved in Movies Magic Club"
+    return templates.TemplateResponse(
+        "browse.html",
+        {
+            "request": request,
+            "page_title": page_title,
+            "page_subtitle": page_subtitle,
+            "movies": movies,
+        },
+    )
+
+
+# ---------- BROWSE BY GENRE ----------
+
+@router.get("/genre/{genre_slug}", response_class=HTMLResponse)
+async def browse_by_genre(request: Request, genre_slug: str):
+    db = get_db()
+    movies: List[dict] = []
+    key = genre_slug.lower()
+    genre = GENRE_MAP.get(key, genre_slug.title())
+
+    if db is not None:
+        cursor = db["movies"].find(
+            {
+                "category": {"$regex": genre, "$options": "i"},
+                "seasons": {"$exists": False}  # ✅ FIX: Exclude series
+            }
+        ).sort("_id", -1)
+        movies = await _build_movie_list(cursor)
+
+    page_title = f"{genre} movies"
+    page_subtitle = f"All movies tagged as {genre}"
+    return templates.TemplateResponse(
+        "browse.html",
+        {
+            "request": request,
+            "page_title": page_title,
+            "page_subtitle": page_subtitle,
+            "movies": movies,
+        },
+    )
+
+
+# ---------- HELPER FUNCTIONS ----------
+
+async def _build_movie_list(cursor) -> List[dict]:
+    """Convert async cursor to list of movie dicts"""
     return [
         {
             "id": str(doc.get("_id")),
@@ -138,149 +230,4 @@ async def _build_movie_list(cursor):
         }
         async for doc in cursor
     ]
-
-
-@router.get("/language/{lang_slug}", response_class=HTMLResponse)
-async def browse_by_language(request: Request, lang_slug: str):
-    db = get_db()
-    movies: List[dict] = []
-    lang_key = lang_slug.lower()
-    language = LANGUAGE_MAP.get(lang_key, lang_slug.title())
-
-    if db is not None:
-        # ✅ FIXED: Changed from "language" to "languages" to match array field
-        cursor = (
-            db["movies"]
-            .find({"languages": language})  # Check if language exists in languages array
-            .sort("_id", -1)
-        )
-        movies = await _build_movie_list(cursor)
-
-    page_title = f"{language} movies"
-    page_subtitle = f"All {language} movies saved in Movies Magic Club"
-
-    return templates.TemplateResponse(
-        "browse.html",
-        {
-            "request": request,
-            "page_title": page_title,
-            "page_subtitle": page_subtitle,
-            "movies": movies,
-        },
-    )
-
-
-GENRE_MAP = {
-    "action": "Action",
-    "comedy": "Comedy",
-    "drama": "Drama",
-    "horror": "Horror",
-    "crime": "Crime",
-    "romance": "Romance",
-}
-
-
-@router.get("/genre/{genre_slug}", response_class=HTMLResponse)
-async def browse_by_genre(request: Request, genre_slug: str):
-    db = get_db()
-    movies: List[dict] = []
-    key = genre_slug.lower()
-    genre = GENRE_MAP.get(key, genre_slug.title())
-
-    if db is not None:
-        cursor = db["movies"].find(
-            {"category": {"$regex": genre, "$options": "i"}}
-        ).sort("_id", -1)
-        movies = await _build_movie_list(cursor)
-
-    page_title = f"{genre} movies"
-    page_subtitle = f"All movies tagged as {genre}"
-
-    return templates.TemplateResponse(
-        "browse.html",
-        {
-            "request": request,
-            "page_title": page_title,
-            "page_subtitle": page_subtitle,
-            "movies": movies,
-        },
-    )
-
-
-# ---------- MOVIE DETAIL + HEALTH ----------
-
-@router.get("/movie/{movie_id}", response_class=HTMLResponse)
-async def movie_detail(request: Request, movie_id: str):
-    db = get_db()
-    movie = None
-
-    if db is not None:
-        try:
-            oid = ObjectId(movie_id)
-            movie = await db["movies"].find_one({"_id": oid})
-        except Exception:
-            movie = None
-
-    if movie:
-        languages = movie.get("languages") or []
-        audio_text = ", ".join(languages) if languages else movie.get(
-            "audio", "Tamil, Telugu, Hindi"
-        )
-
-        movie_ctx = {
-            "id": str(movie.get("_id")),
-            "title": movie.get("title", "Sample Movie Title"),
-            "year": movie.get("year", 2024),
-            "language": movie.get("language", "Tamil"),
-            "quality": movie.get("quality", "HD"),
-            "category": movie.get("category", "Action"),
-            "is_multi_dubbed": len(languages) > 1,
-            "duration": movie.get("duration", "2h 20m"),
-            "description": movie.get("description", ""),
-            "audio": audio_text,
-            "subtitles": movie.get("subtitles", "English"),
-            "size": movie.get("size", "2.1 GB"),
-            "views": movie.get("views", "12.4K"),
-            "poster_path": movie.get("poster_path"),
-            "watch_url": movie.get("watch_url", ""),
-            "download_url": movie.get("download_url", ""),
-        }
-    else:
-        movie_ctx = {
-            "id": movie_id,
-            "title": "Sample Movie Title",
-            "year": 2024,
-            "language": "Tamil",
-            "quality": "HD",
-            "category": "Action",
-            "is_multi_dubbed": True,
-            "duration": "2h 20m",
-            "description": "",
-            "audio": "Tamil, Telugu, Hindi",
-            "subtitles": "English",
-            "size": "2.1 GB",
-            "views": "12.4K",
-            "poster_path": None,
-            "watch_url": "",
-            "download_url": "",
-        }
-
-    return templates.TemplateResponse(
-        "movie_detail.html",
-        {"request": request, "movie": movie_ctx},
-    )
-
-
-@router.get("/health", response_class=PlainTextResponse)
-async def health():
-    return "OK"
-
-
-@router.get("/debug/movies-count", response_class=PlainTextResponse)
-async def movies_count():
-    db = get_db()
-    if db is None:
-        return "MongoDB not connected"
-    count = await db["movies"].count_documents({})
-    return f"Movies in DB: {count}"
-        
+    
