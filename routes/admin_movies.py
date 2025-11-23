@@ -4,19 +4,15 @@ import os
 from datetime import datetime
 from typing import List
 from uuid import uuid4  # still imported in case you use elsewhere, ok to remove if unused
-
 from bson import ObjectId
 from fastapi import APIRouter, Request, Form, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-
 import httpx  # NEW: to call /api/poster/upload from inside the app
-
 from db import get_db
 from .admin_auth import is_admin
 
 router = APIRouter()
-
 templates = Jinja2Templates(directory="templates")
 
 # ---------- MOVIES ADMIN: LIST + SEARCH + ADD ----------
@@ -27,8 +23,8 @@ async def admin_movies_dashboard(request: Request, message: str = ""):
         return RedirectResponse("/admin/login", status_code=303)
 
     q = request.query_params.get("q", "").strip()
-
     db = get_db()
+
     if db is None:
         return templates.TemplateResponse(
             "admin_movies.html",
@@ -47,7 +43,6 @@ async def admin_movies_dashboard(request: Request, message: str = ""):
         )
 
     movies_col = db["movies"]
-
     total_movies = await movies_col.count_documents({})
     tamil_count = await movies_col.count_documents({"language": "Tamil"})
     telugu_count = await movies_col.count_documents({"language": "Telugu"})
@@ -60,7 +55,6 @@ async def admin_movies_dashboard(request: Request, message: str = ""):
         query = {"title": {"$regex": q, "$options": "i"}}
 
     cursor = movies_col.find(query).sort("_id", -1).limit(50)
-
     movies = [
         {
             "id": str(doc.get("_id")),
@@ -123,7 +117,6 @@ async def admin_create_movie(
         try:
             # Read file content once
             content = await poster.read()
-
             async with httpx.AsyncClient() as client:
                 files = {
                     "image": (
@@ -142,16 +135,14 @@ async def admin_create_movie(
                     files=files,
                     timeout=30,
                 )
-
-            resp_data = resp.json()
-            if resp_data.get("success"):
-                poster_path = resp_data.get("url")  # Telegram CDN URL
-                print(f"[ADMIN] Poster uploaded via API, url={poster_path}")
-            else:
-                print(f"[ADMIN] Poster upload API failed: {resp_data}")
+                resp_data = resp.json()
+                if resp_data.get("success"):
+                    poster_path = resp_data.get("url")  # Telegram CDN URL
+                    print(f"[ADMIN] Poster uploaded via API, url={poster_path}")
+                else:
+                    print(f"[ADMIN] Poster upload API failed: {resp_data}")
         except Exception as e:
             print(f"[ADMIN] Poster upload error: {e}")
-
     # --- END NEW poster handling ---
 
     year_int = None
@@ -168,7 +159,7 @@ async def admin_create_movie(
         "year": year_int,
         "language": primary_language,
         "languages": languages,
-        "audio_languages": languages,   # NEW
+        "audio_languages": languages,  # NEW
         "quality": quality or "HD",
         "category": category,
         "watch_url": watch_url,
@@ -178,7 +169,12 @@ async def admin_create_movie(
         "created_at": datetime.utcnow(),
     }
 
-    await db["movies"].insert_one(movie_doc)
+    # ✅ FIXED: Changed from insert_one to update_one with upsert to prevent duplicates
+    await db["movies"].update_one(
+        {"title": title},  # Match by title to check if movie exists
+        {"$set": movie_doc},  # Update or insert all fields
+        upsert=True  # Create new if doesn't exist, update if exists
+    )
 
     return RedirectResponse(
         "/admin/movies?message=Movie+saved+successfully+%E2%9C%85",
@@ -264,11 +260,10 @@ async def admin_edit_movie(
         )
 
     primary_language = languages[0] if languages else "Tamil"
-
     update = {
         "title": title,
         "language": primary_language,
-        "audio_languages": languages,   # NEW
+        "audio_languages": languages,  # NEW
         "quality": quality or "HD",
         "category": category,
         "watch_url": watch_url,
@@ -307,20 +302,18 @@ async def admin_edit_movie(
                     files=files,
                     timeout=30,
                 )
-
-            resp_data = resp.json()
-            if resp_data.get("success"):
-                poster_path = resp_data.get("url")
-                update["poster_path"] = poster_path
-                print(f"[ADMIN] Poster (edit) uploaded via API, url={poster_path}")
-            else:
-                print(f"[ADMIN] Poster (edit) upload API failed: {resp_data}")
+                resp_data = resp.json()
+                if resp_data.get("success"):
+                    poster_path = resp_data.get("url")
+                    update["poster_path"] = poster_path
+                    print(f"[ADMIN] Poster (edit) uploaded via API, url={poster_path}")
+                else:
+                    print(f"[ADMIN] Poster (edit) upload API failed: {resp_data}")
         except Exception as e:
             print(f"[ADMIN] Poster (edit) upload error: {e}")
     # --- END NEW poster handling ---
 
     await db["movies"].update_one({"_id": oid}, {"$set": update})
-
     return RedirectResponse(
         "/admin/movies?message=Movie+updated+successfully",
         status_code=303,
