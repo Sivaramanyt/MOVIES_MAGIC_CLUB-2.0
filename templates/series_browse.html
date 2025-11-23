@@ -113,7 +113,7 @@
                 <div class="item-card">
                     <div class="item-poster">
                         {% if s.poster_path %}
-                            <img src="{{ url_for('static', path=s.poster_path) }}"
+                            <img src="{{ s.poster_path }}" alt="{{ s.title }} poster">
                                  alt="{{ s.title }} poster">
                         {% endif %}
                     </div>
