@@ -262,12 +262,14 @@
           {% endif %}
         </div>
       </div>
-
+      
       <div>
         <div class="info-label">Language</div>
         <div class="info-value">
           {% if movie and movie.languages %}
             {{ movie.languages | join(', ') }}
+          {% elif movie and movie.audio_languages %}
+            {{ movie.audio_languages | join(', ') }}
           {% elif movie and movie.language %}
             {{ movie.language }}
           {% else %}
@@ -275,6 +277,7 @@
           {% endif %}
         </div>
       </div>
+      
 
       <div>
         <div class="info-label">Quality</div>
