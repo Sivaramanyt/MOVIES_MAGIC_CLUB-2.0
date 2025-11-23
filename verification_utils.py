@@ -150,7 +150,7 @@ async def should_require_verification(request: Request) -> bool:
 
     # If free usage not exceeded → allow
     # FIXED: Changed < to <= so it works correctly after increment
-    if state["free_used"] <= settings["free_limit"]:
+    if state["free_used"] < settings["free_limit"]:
         return False
 
     # Free limit finished & not currently verified → require verification
