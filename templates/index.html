@@ -249,6 +249,30 @@
     .movie-hero-item {
       grid-template-columns: minmax(0, 1fr);
     }
+  
+      .see-more-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      color: #020617;
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      box-shadow: 0 8px 20px rgba(248, 113, 113, 0.45);
+      border: none;
+   }
+
+   .see-more-btn:hover {
+     filter: brightness(1.07);
+   }
+
+   .see-more-btn:active {
+     transform: translateY(1px);
+     box-shadow: 0 4px 12px rgba(248, 113, 113, 0.35);
+    }
   }
 </style>
 
@@ -393,7 +417,7 @@
       <div>
         <div class="card-title">
           All movies
-          <a href="/movies/browse" style="margin-left: 8px; font-size: 11px; color: #a5b4fc; text-decoration: none;">
+          <a href="/movies/browse" class="see-more-btn">
             See more →
           </a>
         </div>
@@ -444,7 +468,7 @@
       <div>
         <div class="card-title">
           Tamil movies
-          <a href="/movies/browse?lang=Tamil" style="margin-left: 8px; font-size: 11px; color: #a5b4fc; text-decoration: none;">
+          <a href="/movies/browse" class="see-more-btn">
             See more →
           </a>
         </div>
@@ -496,7 +520,7 @@
       <div>
         <div class="card-title">
           Telugu movies
-          <a href="/movies/browse?lang=Telugu" style="margin-left: 8px; font-size: 11px; color: #a5b4fc; text-decoration: none;">
+          <a href="/movies/browse" class="see-more-btn">
             See more →
           </a>
         </div>
@@ -548,7 +572,7 @@
       <div>
         <div class="card-title">
           Hindi movies
-          <a href="/movies/browse?lang=Hindi" style="margin-left: 8px; font-size: 11px; color: #a5b4fc; text-decoration: none;">
+          <a href="/movies/browse" class="see-more-btn">
             See more →
           </a>
         </div>
@@ -600,7 +624,7 @@
       <div>
         <div class="card-title">
           Malayalam movies
-          <a href="/movies/browse?lang=Malayalam" style="margin-left: 8px; font-size: 11px; color: #a5b4fc; text-decoration: none;">
+          <a href="/movies/browse" class="see-more-btn">
             See more →
           </a>
         </div>
@@ -652,7 +676,7 @@
       <div>
         <div class="card-title">
           Kannada movies
-          <a href="/movies/browse?lang=Kannada" style="margin-left: 8px; font-size: 11px; color: #a5b4fc; text-decoration: none;">
+          <a href="/movies/browse" class="see-more-btn">
             See more →
           </a>
         </div>
