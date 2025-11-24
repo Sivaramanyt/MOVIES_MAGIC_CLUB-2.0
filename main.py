@@ -8,6 +8,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from pyrogram import Client, filters
 from pyrogram.errors import BadRequest
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 
 # ---- FIX for Pyrogram Peer ID bug (MIN_* constants) ----
 # Based on official PR: MIN_CHANNEL_ID = -1007852516352, MIN_CHAT_ID = -999999999999
@@ -86,14 +88,7 @@ mongo_client = AsyncIOMotorClient(MONGO_URI)
 poster_db = mongo_client[MONGO_DB if MONGO_DB else "movies_magic_club"]
 
 
-@bot.on_message(filters.command("start") & filters.private)
-async def start_command(client, message):
-    text = (
-        "👋 Hi!\n\n"
-        "Movies Magic Club bot is online.\n"
-        "Use the website / web app to browse movies & series. 🎬"
-    )
-    await message.reply_text(text)
+
 
 
 # -------------------------------------------------------------------
@@ -116,7 +111,37 @@ async def on_shutdown():
     print("🔻 FastAPI app and bot shutting down!")
 
 
-# -------------------------------------------------------------------
+@bot.on_message(filters.command("start") & filters.private)
+async def start_command(client, message):
+    # Eye-catching welcome message
+    text = (
+        "🎬 **Welcome to Movies Magic Club!** 🎬\n\n"
+        "🌟 Your ultimate destination for movies and series!\n\n"
+        "✨ **What we offer:**\n"
+        "📽️ Latest Movies & Series\n"
+        "🎯 Multiple Languages\n"
+        "🔥 HD Quality Content\n"
+        "⚡ Fast Streaming\n\n"
+        "👇 **Get Started Below!**"
+    )
+    
+    # Inline keyboard with two buttons
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                "🌐 Open Website", 
+                url="https://preferred-lesya-rolex44-c5202a04.koyeb.app/"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "📢 Join for Updates", 
+                url="https://t.me/movies_magic_club3"
+            )
+        ]
+    ])
+    
+    await message.reply_text(text, reply_markup=keyboard)
 # Health / root
 # -------------------------------------------------------------------
 
