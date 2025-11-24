@@ -32,85 +32,15 @@ def _movie_to_ctx(doc: dict) -> dict:
     }
 
 
-# ---------- MOVIES HOME (MOVIES TAB) ----------
-
-@router.get("/", response_class=HTMLResponse)
-async def movies_home(request: Request):
-    db = get_db()
-    latest_movies: List[dict] = []
-    tamil_movies: List[dict] = []
-    telugu_movies: List[dict] = []
-    hindi_movies: List[dict] = []
-    malayalam_movies: List[dict] = []
-    kannada_movies: List[dict] = []
-
-    if db is not None:
-        col = db["movies"]
-        cursor = col.find().sort("_id", -1).limit(20)
-        latest_movies = [_movie_to_ctx(doc) async for doc in cursor]
-
-        async def _lang_list(lang: str, limit: int = 12) -> List[dict]:
-            cur = col.find({"languages": lang}).sort("_id", -1).limit(limit)
-            return [_movie_to_ctx(doc) async for doc in cur]
-
-        tamil_movies = await _lang_list("Tamil")
-        telugu_movies = await _lang_list("Telugu")
-        hindi_movies = await _lang_list("Hindi")
-        malayalam_movies = await _lang_list("Malayalam")
-        kannada_movies = await _lang_list("Kannada")
-
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "latest_movies": latest_movies,
-            "tamil_movies": tamil_movies,
-            "telugu_movies": telugu_movies,
-            "hindi_movies": hindi_movies,
-            "malayalam_movies": malayalam_movies,
-            "kannada_movies": kannada_movies,
-            "active_tab": "movies",
-        },
-    )
-
-
-# ---------- MOVIES BROWSE (BY GENRE OR ALL) ----------
-
-@router.get("/movies/browse", response_class=HTMLResponse)
-async def movies_browse(request: Request, genre: str = ""):
-    db = get_db()
-    movies_list: List[dict] = []
-
-    if db is not None:
-        col = db["movies"]
-        query = {}
-        if genre:
-            query["category"] = {"$regex": genre, "$options": "i"}
-        cursor = col.find(query).sort("_id", -1)
-        movies_list = [_movie_to_ctx(doc) async for doc in cursor]
-
-    return templates.TemplateResponse(
-        "movies_browse.html",
-        {
-            "request": request,
-            "movies_list": movies_list,
-            "genre": genre,
-            "active_tab": "movies",
-        },
-    )
-
-
-# ---------- MOVIE DETAIL PAGE ----------
+# ---------- MOVIES DETAIL PAGE ----------
 
 @router.get("/movie/{movie_id}", response_class=HTMLResponse)
 async def movie_detail(request: Request, movie_id: str):
     """
-    Plain detail page. Verification is enforced in watch/download routes,
-    not when opening this page.
+    Renders movie_detail.html for a single movie (poster, title, description, buttons).
     """
     db = get_db()
     movie_doc: Optional[dict] = None
-
     if db is not None:
         try:
             oid = ObjectId(movie_id)
@@ -128,32 +58,39 @@ async def movie_detail(request: Request, movie_id: str):
             },
         )
 
-    languages = movie_doc.get("languages") or []
-    primary_language = movie_doc.get("language") or (languages[0] if languages else "Tamil")
-    audio_text = ", ".join(languages) if languages else primary_language
-
-    movie_ctx = {
-        "id": str(movie_doc.get("_id")),
-        "title": movie_doc.get("title", "Untitled"),
-        "year": movie_doc.get("year"),
-        "quality": movie_doc.get("quality", "HD"),
-        "language": primary_language,
-        "languages": languages,
-        "category": movie_doc.get("category", ""),
-        "poster_path": movie_doc.get("poster_path"),
-        "watch_url": movie_doc.get("watch_url"),
-        "download_url": movie_doc.get("download_url"),
-        "description": movie_doc.get("description", ""),
-        "audio": audio_text,
-        "subtitles": movie_doc.get("subtitles", ""),
-        "is_multi_dubbed": len(languages) > 1,
-    }
-
+    movie_ctx = _movie_to_ctx(movie_doc)
     return templates.TemplateResponse(
         "movie_detail.html",
         {
             "request": request,
             "movie": movie_ctx,
+            "active_tab": "movies",
+        },
+    )
+
+
+# ---------- BROWSE ALL MOVIES ----------
+
+@router.get("/movies/browse", response_class=HTMLResponse)
+async def browse_all_movies(request: Request):
+    """
+    Show all movies in a grid (no pagination).
+    """
+    db = get_db()
+    movies: List[dict] = []
+    if db is not None:
+        # ✅ Exclude series (documents with 'seasons' field)
+        cursor = db["movies"].find({"seasons": {"$exists": False}}).sort("_id", -1)
+        async for doc in cursor:
+            movies.append(_movie_to_ctx(doc))
+
+    return templates.TemplateResponse(
+        "browse.html",
+        {
+            "request": request,
+            "page_title": "All Movies",
+            "page_subtitle": "Browse our complete collection",
+            "movies": movies,
             "active_tab": "movies",
         },
     )
@@ -169,7 +106,7 @@ async def movie_watch(request: Request, movie_id: str):
     print("\n" + "="*60)
     print(f"🎬 WATCH BUTTON CLICKED - Movie ID: {movie_id}")
     print("="*60)
-
+    
     # Get state BEFORE any changes
     settings_before, state_before, _ = await get_user_verification_state(request)
     print(f"🔍 CURRENT STATE:")
@@ -177,12 +114,12 @@ async def movie_watch(request: Request, movie_id: str):
     print(f"   - free_limit: {settings_before['free_limit']}")
     print(f"   - enabled: {settings_before['enabled']}")
     print(f"   - verified_until: {state_before['verified_until']}")
-
+    
     # ✅ STEP 1: CHECK VERIFICATION FIRST (before incrementing)
     needs_verify = await should_require_verification(request)
     print(f"🔍 VERIFICATION CHECK (BEFORE INCREMENT):")
     print(f"   - needs_verify: {needs_verify}")
-
+    
     if needs_verify:
         print(f"🚨 REDIRECTING TO VERIFICATION PAGE")
         print("="*60 + "\n")
@@ -190,7 +127,7 @@ async def movie_watch(request: Request, movie_id: str):
             url=f"/verify/start?next=/movie/{movie_id}/watch",
             status_code=303,
         )
-
+    
     # ✅ STEP 2: ONLY INCREMENT if not requiring verification
     await increment_free_used(request)
     print(f"✅ INCREMENT DONE - User allowed to watch")
@@ -201,23 +138,40 @@ async def movie_watch(request: Request, movie_id: str):
     print(f"   - free_used: {state_after['free_used']}")
     print(f"✅ ALLOWING ACCESS TO VIDEO")
     print("="*60 + "\n")
-
-    # ✅ STEP 3: Redirect to actual watch_url
+    
+    # ✅ STEP 3: Get movie and show video player page
     db = get_db()
     movie_doc: Optional[dict] = None
-
     if db is not None:
         try:
             oid = ObjectId(movie_id)
             movie_doc = await db["movies"].find_one({"_id": oid})
         except Exception:
             movie_doc = None
-
+    
     if not movie_doc or not movie_doc.get("watch_url"):
         return RedirectResponse(url=f"/movie/{movie_id}", status_code=303)
-
-    return RedirectResponse(url=movie_doc["watch_url"], status_code=302)
     
+    # ✅ STEP 4: Convert Lulu URL to embed format (if needed)
+    watch_url = movie_doc["watch_url"]
+    
+    # Convert /d/ to /e/ for embedding (works for both luluvid and lulivid)
+    if "luluvid.com/d/" in watch_url or "lulivid.com/d/" in watch_url:
+        embed_url = watch_url.replace("/d/", "/e/")
+        print(f"🔄 Converted URL: {watch_url} -> {embed_url}")
+    else:
+        embed_url = watch_url
+        print(f"✅ Using URL as-is: {embed_url}")
+    
+    # ✅ STEP 5: Render video player template with fullscreen support
+    return templates.TemplateResponse(
+        "watch_video.html",
+        {
+            "request": request,
+            "video_url": embed_url,
+            "title": movie_doc.get("title", "Watch Movie")
+        }
+    )
 
 
 @router.get("/movie/{movie_id}/download")
@@ -226,9 +180,9 @@ async def movie_download(request: Request, movie_id: str):
     ✅ FIXED: Gate for Download button - CHECK FIRST, THEN INCREMENT
     """
     print("\n" + "="*60)
-    print(f"⬇️ DOWNLOAD BUTTON CLICKED - Movie ID: {movie_id}")
+    print(f"📥 DOWNLOAD BUTTON CLICKED - Movie ID: {movie_id}")
     print("="*60)
-
+    
     # Get state BEFORE any changes
     settings_before, state_before, _ = await get_user_verification_state(request)
     print(f"🔍 CURRENT STATE:")
@@ -236,12 +190,12 @@ async def movie_download(request: Request, movie_id: str):
     print(f"   - free_limit: {settings_before['free_limit']}")
     print(f"   - enabled: {settings_before['enabled']}")
     print(f"   - verified_until: {state_before['verified_until']}")
-
+    
     # ✅ STEP 1: CHECK VERIFICATION FIRST (before incrementing)
     needs_verify = await should_require_verification(request)
     print(f"🔍 VERIFICATION CHECK (BEFORE INCREMENT):")
     print(f"   - needs_verify: {needs_verify}")
-
+    
     if needs_verify:
         print(f"🚨 REDIRECTING TO VERIFICATION PAGE")
         print("="*60 + "\n")
@@ -249,7 +203,7 @@ async def movie_download(request: Request, movie_id: str):
             url=f"/verify/start?next=/movie/{movie_id}/download",
             status_code=303,
         )
-
+    
     # ✅ STEP 2: ONLY INCREMENT if not requiring verification
     await increment_free_used(request)
     print(f"✅ INCREMENT DONE - User allowed to download")
@@ -258,13 +212,10 @@ async def movie_download(request: Request, movie_id: str):
     settings_after, state_after, _ = await get_user_verification_state(request)
     print(f"🔍 AFTER INCREMENT:")
     print(f"   - free_used: {state_after['free_used']}")
-    print(f"✅ ALLOWING ACCESS TO DOWNLOAD")
-    print("="*60 + "\n")
-
+    
     # ✅ STEP 3: Redirect to actual download_url
     db = get_db()
     movie_doc: Optional[dict] = None
-
     if db is not None:
         try:
             oid = ObjectId(movie_id)
@@ -275,5 +226,7 @@ async def movie_download(request: Request, movie_id: str):
     if not movie_doc or not movie_doc.get("download_url"):
         return RedirectResponse(url=f"/movie/{movie_id}", status_code=303)
 
+    print(f"✅ ALLOWING DOWNLOAD")
+    print("="*60 + "\n")
     return RedirectResponse(url=movie_doc["download_url"], status_code=302)
     
