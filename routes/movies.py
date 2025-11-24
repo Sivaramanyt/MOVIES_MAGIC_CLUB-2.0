@@ -152,33 +152,33 @@ async def movie_watch(request: Request, movie_id: str):
     if not movie_doc or not movie_doc.get("watch_url"):
         return RedirectResponse(url=f"/movie/{movie_id}", status_code=303)
     
-    # ✅ STEP 4: Convert Lulu URL to embed format - handle multiple URL patterns
+    # ✅ STEP 4: Use Lulu DIRECT URL (/d/) for better fullscreen (not /e/ embed)
     watch_url = movie_doc["watch_url"]
     
     if "luluvid.com/e/" in watch_url or "lulivid.com/e/" in watch_url:
-        # Already in embed format
-        embed_url = watch_url
-        print(f"✅ Already embed URL: {embed_url}")
+        # Convert embed /e/ to direct /d/ for better fullscreen
+        direct_url = watch_url.replace("/e/", "/d/")
+        print(f"🔄 Converted /e/ to /d/: {watch_url} -> {direct_url}")
     elif "luluvid.com/d/" in watch_url or "lulivid.com/d/" in watch_url:
-        # Convert /d/ to /e/
-        embed_url = watch_url.replace("/d/", "/e/")
-        print(f"🔄 Converted /d/ to /e/: {watch_url} -> {embed_url}")
+        # Already in direct /d/ format
+        direct_url = watch_url
+        print(f"✅ Already /d/ URL: {direct_url}")
     elif "luluvid.com/" in watch_url or "lulivid.com/" in watch_url:
-        # Direct video ID format (no /d/ or /e/) - add /e/ before video ID
-        # Example: https://luluvid.com/g4ttoy0mlp83 -> https://luluvid.com/e/g4ttoy0mlp83
+        # Direct video ID format - add /d/ before video ID
+        # Example: https://luluvid.com/g4ttoy0mlp83 -> https://luluvid.com/d/g4ttoy0mlp83
         parts = watch_url.split("/")
         video_id = parts[-1]  # Get last part (video ID)
         base_url = "/".join(parts[:-1])  # Get everything before video ID
-        embed_url = f"{base_url}/e/{video_id}"
-        print(f"🔄 Added /e/ to URL: {watch_url} -> {embed_url}")
+        direct_url = f"{base_url}/d/{video_id}"
+        print(f"🔄 Added /d/ to URL: {watch_url} -> {direct_url}")
     else:
         # Unknown format, use as-is
-        embed_url = watch_url
-        print(f"⚠️ Unknown URL format, using as-is: {embed_url}")
+        direct_url = watch_url
+        print(f"⚠️ Unknown URL format, using as-is: {direct_url}")
     
-    # ✅ STEP 5: Direct redirect to Lulu (TamilBlasters style - best experience)
-    print(f"🎬 Redirecting to: {embed_url}")
-    return RedirectResponse(url=embed_url, status_code=302)
+    # ✅ STEP 5: Direct redirect to Lulu /d/ URL (best fullscreen experience)
+    print(f"🎬 Redirecting to: {direct_url}")
+    return RedirectResponse(url=direct_url, status_code=302)
 
 
 @router.get("/movie/{movie_id}/download")
