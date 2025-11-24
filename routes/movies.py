@@ -216,14 +216,8 @@ async def movie_watch(request: Request, movie_id: str):
     if not movie_doc or not movie_doc.get("watch_url"):
         return RedirectResponse(url=f"/movie/{movie_id}", status_code=303)
 
-    return templates.TemplateResponse(
-        "watch_video.html",
-        {
-            "request": request,
-            "video_url": movie_doc["watch_url"],
-            "title": movie_doc.get("title", "Watch Movie")
-        }
-    )
+    return RedirectResponse(url=movie_doc["watch_url"], status_code=302)
+    
 
 
 @router.get("/movie/{movie_id}/download")
