@@ -9,7 +9,7 @@ from db import get_db
 from verification_utils import (
     should_require_verification,
     increment_free_used,
-    get_user_verification_state,  # Added for debug
+    get_user_verification_state,
 )
 
 router = APIRouter()
@@ -79,7 +79,6 @@ async def browse_all_movies(request: Request):
     db = get_db()
     movies: List[dict] = []
     if db is not None:
-        # ✅ Exclude series (documents with 'seasons' field)
         cursor = db["movies"].find({"seasons": {"$exists": False}}).sort("_id", -1)
         async for doc in cursor:
             movies.append(_movie_to_ctx(doc))
@@ -96,50 +95,30 @@ async def browse_all_movies(request: Request):
     )
 
 
-# ---------- WATCH / DOWNLOAD GATES (with verification + DEBUG) ----------
+# ---------- WATCH / DOWNLOAD GATES ----------
 
 @router.get("/movie/{movie_id}/watch")
 async def movie_watch(request: Request, movie_id: str):
     """
-    ✅ FIXED: Gate for Watch Now button - CHECK FIRST, THEN INCREMENT
+    Gate for Watch Now button - with verification
     """
-    print("\n" + "="*60)
-    print(f"🎬 WATCH BUTTON CLICKED - Movie ID: {movie_id}")
-    print("="*60)
+    print(f"\n🎬 WATCH BUTTON CLICKED - Movie ID: {movie_id}")
     
-    # Get state BEFORE any changes
-    settings_before, state_before, _ = await get_user_verification_state(request)
-    print(f"🔍 CURRENT STATE:")
-    print(f"   - free_used: {state_before['free_used']}")
-    print(f"   - free_limit: {settings_before['free_limit']}")
-    print(f"   - enabled: {settings_before['enabled']}")
-    print(f"   - verified_until: {state_before['verified_until']}")
-    
-    # ✅ STEP 1: CHECK VERIFICATION FIRST (before incrementing)
+    # Check verification
     needs_verify = await should_require_verification(request)
-    print(f"🔍 VERIFICATION CHECK (BEFORE INCREMENT):")
-    print(f"   - needs_verify: {needs_verify}")
     
     if needs_verify:
         print(f"🚨 REDIRECTING TO VERIFICATION PAGE")
-        print("="*60 + "\n")
         return RedirectResponse(
             url=f"/verify/start?next=/movie/{movie_id}/watch",
             status_code=303,
         )
     
-    # ✅ STEP 2: ONLY INCREMENT if not requiring verification
+    # Increment free used
     await increment_free_used(request)
-    print(f"✅ INCREMENT DONE - User allowed to watch")
+    print(f"✅ User allowed to watch")
     
-    # Get state after increment (for debug)
-    settings_after, state_after, _ = await get_user_verification_state(request)
-    print(f"🔍 AFTER INCREMENT:")
-    print(f"   - free_used: {state_after['free_used']}")
-    print(f"✅ ALLOWING ACCESS TO VIDEO")
-    print("="*60 + "\n")
-    
-    # ✅ STEP 3: Get movie and show video player page
+    # Get movie
     db = get_db()
     movie_doc: Optional[dict] = None
     if db is not None:
@@ -152,75 +131,34 @@ async def movie_watch(request: Request, movie_id: str):
     if not movie_doc or not movie_doc.get("watch_url"):
         return RedirectResponse(url=f"/movie/{movie_id}", status_code=303)
     
-    # ✅ STEP 4: Use Lulu DIRECT URL (/d/) for better fullscreen (not /e/ embed)
+    # ✅ SIMPLE: Direct redirect to watch_url (NO changes, NO conversion)
     watch_url = movie_doc["watch_url"]
-    
-    if "luluvid.com/e/" in watch_url or "lulivid.com/e/" in watch_url:
-        # Convert embed /e/ to direct /d/ for better fullscreen
-        direct_url = watch_url.replace("/e/", "/d/")
-        print(f"🔄 Converted /e/ to /d/: {watch_url} -> {direct_url}")
-    elif "luluvid.com/d/" in watch_url or "lulivid.com/d/" in watch_url:
-        # Already in direct /d/ format
-        direct_url = watch_url
-        print(f"✅ Already /d/ URL: {direct_url}")
-    elif "luluvid.com/" in watch_url or "lulivid.com/" in watch_url:
-        # Direct video ID format - add /d/ before video ID
-        # Example: https://luluvid.com/g4ttoy0mlp83 -> https://luluvid.com/d/g4ttoy0mlp83
-        parts = watch_url.split("/")
-        video_id = parts[-1]  # Get last part (video ID)
-        base_url = "/".join(parts[:-1])  # Get everything before video ID
-        direct_url = f"{base_url}/d/{video_id}"
-        print(f"🔄 Added /d/ to URL: {watch_url} -> {direct_url}")
-    else:
-        # Unknown format, use as-is
-        direct_url = watch_url
-        print(f"⚠️ Unknown URL format, using as-is: {direct_url}")
-    
-    # ✅ STEP 5: Direct redirect to Lulu /d/ URL (best fullscreen experience)
-    print(f"🎬 Redirecting to: {direct_url}")
-    return RedirectResponse(url=direct_url, status_code=302)
+    print(f"🎬 Redirecting to: {watch_url}")
+    return RedirectResponse(url=watch_url, status_code=302)
 
 
 @router.get("/movie/{movie_id}/download")
 async def movie_download(request: Request, movie_id: str):
     """
-    ✅ FIXED: Gate for Download button - CHECK FIRST, THEN INCREMENT
+    Gate for Download button - with verification
     """
-    print("\n" + "="*60)
-    print(f"📥 DOWNLOAD BUTTON CLICKED - Movie ID: {movie_id}")
-    print("="*60)
+    print(f"\n📥 DOWNLOAD BUTTON CLICKED - Movie ID: {movie_id}")
     
-    # Get state BEFORE any changes
-    settings_before, state_before, _ = await get_user_verification_state(request)
-    print(f"🔍 CURRENT STATE:")
-    print(f"   - free_used: {state_before['free_used']}")
-    print(f"   - free_limit: {settings_before['free_limit']}")
-    print(f"   - enabled: {settings_before['enabled']}")
-    print(f"   - verified_until: {state_before['verified_until']}")
-    
-    # ✅ STEP 1: CHECK VERIFICATION FIRST (before incrementing)
+    # Check verification
     needs_verify = await should_require_verification(request)
-    print(f"🔍 VERIFICATION CHECK (BEFORE INCREMENT):")
-    print(f"   - needs_verify: {needs_verify}")
     
     if needs_verify:
         print(f"🚨 REDIRECTING TO VERIFICATION PAGE")
-        print("="*60 + "\n")
         return RedirectResponse(
             url=f"/verify/start?next=/movie/{movie_id}/download",
             status_code=303,
         )
     
-    # ✅ STEP 2: ONLY INCREMENT if not requiring verification
+    # Increment free used
     await increment_free_used(request)
-    print(f"✅ INCREMENT DONE - User allowed to download")
+    print(f"✅ User allowed to download")
     
-    # Get state after increment (for debug)
-    settings_after, state_after, _ = await get_user_verification_state(request)
-    print(f"🔍 AFTER INCREMENT:")
-    print(f"   - free_used: {state_after['free_used']}")
-    
-    # ✅ STEP 3: Redirect to actual download_url
+    # Get movie
     db = get_db()
     movie_doc: Optional[dict] = None
     if db is not None:
@@ -234,6 +172,5 @@ async def movie_download(request: Request, movie_id: str):
         return RedirectResponse(url=f"/movie/{movie_id}", status_code=303)
 
     print(f"✅ ALLOWING DOWNLOAD")
-    print("="*60 + "\n")
     return RedirectResponse(url=movie_doc["download_url"], status_code=302)
     
