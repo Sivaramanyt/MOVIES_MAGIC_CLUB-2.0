@@ -27,4 +27,6 @@ MONGO_DB = os.getenv("MONGO_DB", "movies_magic_club")
 # Basic sanity check for required vars
 if not API_ID or not API_HASH or not BOT_TOKEN:
     print("❌ Please set API_ID, API_HASH, BOT_TOKEN as env variables")
+
+
     
