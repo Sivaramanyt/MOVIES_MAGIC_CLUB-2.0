@@ -130,28 +130,35 @@ async def api_poster_upload(
 
         print(f"[DEBUG] Uploading to Telegraph: {tmp_path}")
 
-        # 2. Upload to Telegraph
+        # 2. Upload to Telegraph with proper Headers
         telegraph_url = "https://telegra.ph/upload"
         
+        # Use a real browser User-Agent
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+        }
+
         with open(tmp_path, 'rb') as f:
+            # Note: Telegraph expects field name 'file' (lowercase)
             response = requests.post(
                 telegraph_url, 
-                files={'file': ('file', f, 'image/jpeg')} 
+                files={'file': ('blob', f, 'image/jpeg')}, # 'blob' often works better than filename
+                headers=headers,
+                timeout=30
             )
         
         final_image_url = None
         try:
             json_response = response.json()
-            print(f"[DEBUG] Telegraph Response: {json_response}")  # Print full response for debugging
+            print(f"[DEBUG] Telegraph Response: {json_response}") 
 
-            # Handle response: It should be a list like [{'src': '/file/...'}]
             if isinstance(json_response, list) and len(json_response) > 0:
                 src = json_response[0].get('src')
                 if src:
                     final_image_url = "https://telegra.ph" + src
                     print(f"[SUCCESS] Permanent URL: {final_image_url}")
                 else:
-                     raise Exception(f"No 'src' found in response: {json_response}")
+                     raise Exception(f"No 'src' in response: {json_response}")
             elif isinstance(json_response, dict) and 'error' in json_response:
                 raise Exception(f"Telegraph error: {json_response['error']}")
             else:
@@ -161,7 +168,7 @@ async def api_poster_upload(
             print(f"[ERROR] Telegraph upload failed: {e}")
             raise e
 
-        # 3. Save movie record in Mongo
+        # 3. Save to MongoDB
         movie = {
             "title": movie_title,
             "description": description,
@@ -172,7 +179,7 @@ async def api_poster_upload(
         result = await poster_db.movies.insert_one(movie)
         print(f"[DEBUG] Movie inserted with ID: {result.inserted_id}")
 
-        # Clean up temp file
+        # Clean up
         try:
             if tmp_path and os.path.exists(tmp_path):
                 os.remove(tmp_path)
@@ -186,16 +193,12 @@ async def api_poster_upload(
         })
 
     except BadRequest as e:
-        print(f"[ERROR] Poster upload failed (BadRequest): {e.MESSAGE}")
         try:
             if tmp_path and os.path.exists(tmp_path):
                 os.remove(tmp_path)
         except OSError:
             pass
-        return JSONResponse({
-            "success": False,
-            "error": e.MESSAGE
-        }, status_code=200)
+        return JSONResponse({"success": False, "error": e.MESSAGE}, status_code=200)
         
     except Exception as e:
         print(f"[ERROR] Poster upload failed: {e}")
@@ -204,10 +207,8 @@ async def api_poster_upload(
                 os.remove(tmp_path)
         except OSError:
             pass
-        return JSONResponse({
-            "success": False,
-            "error": str(e)
-        }, status_code=200)
+        return JSONResponse({"success": False, "error": str(e)}, status_code=200)
+        
             
 
 
