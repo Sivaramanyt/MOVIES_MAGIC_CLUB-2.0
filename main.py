@@ -1,22 +1,27 @@
 import os
 import tempfile
-from fastapi import FastAPI, File, Form, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Depends
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 from pyrogram import Client, filters
 from pyrogram.errors import BadRequest
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+import requests
+from datetime import datetime
+from bson import ObjectId
+import uvicorn
 
-# ---- MONKEY PATCH FOR PYROGRAM ----
-from pyrogram import utils as pyrou  # type: ignore
-pyrou.MIN_CHAT_ID = -999999999999
-pyrou.MIN_CHANNEL_ID = -1007852516352
+# ==================== MONKEY PATCH FIX ====================
+# https://github.com/pyrogram/pyrogram/pull/1430
+from pyrogram import utils as pyro_utils  # type: ignore
+pyro_utils.MIN_CHAT_ID = -999999999999  # allow all new groups
+pyro_utils.MIN_CHANNEL_ID = -1007852516352  # allow all new channels
 # ---- END FIX ----
 
-from motor.motor_asyncio import AsyncIOMotorClient
-import requests
-
+# ==================== IMPORTS FROM YOUR MODULES ====================
 from db import connect_to_mongo, close_mongo_connection
 from routes.movies import router as movies_router
 from routes.web import router as web_router
@@ -31,18 +36,18 @@ from routes.admin_verification import router as admin_verification_router
 from routes.support import router as support_router
 from routes.legal import router as legal_router
 from routes import notice, admin_notice
-
 from config import API_ID, API_HASH, BOT_TOKEN, CHANNEL_ID, MONGO_URI, MONGO_DB
 
+# ==================== CONFIGURATION ====================
+POSTER_CHANNEL_ID = int(os.environ.get("POSTER_CHANNEL_ID", "0"))  # ADD THIS TO YOUR ENV
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-this-secret")
 
+# ==================== FASTAPI SETUP ====================
 app = FastAPI(title="Movies Magic Club 2.0")
-
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# ROUTERS
+# ==================== INCLUDE ALL YOUR ROUTERS ====================
 app.include_router(web_router)
 app.include_router(movies_router)
 app.include_router(series_router)
@@ -58,7 +63,7 @@ app.include_router(legal_router)
 app.include_router(notice.router)
 app.include_router(admin_notice.router)
 
-# BOT CLIENT
+# ==================== PYROGRAM BOT SETUP ====================
 bot = Client(
     "movie_webapp_bot",
     api_id=API_ID,
@@ -67,9 +72,11 @@ bot = Client(
     in_memory=True
 )
 
+# ==================== DATABASE SETUP ====================
 mongo_client = AsyncIOMotorClient(MONGO_URI)
-poster_db = mongo_client[MONGO_DB if MONGO_DB else "movies_magic_club"]
+poster_db = mongo_client[MONGO_DB if MONGO_DB else "movies_magic_club"]  # Separate Mongo client for poster collection
 
+# ==================== STARTUP/SHUTDOWN ====================
 @app.on_event("startup")
 async def on_startup():
     await connect_to_mongo()
@@ -83,20 +90,22 @@ async def on_shutdown():
     mongo_client.close()
     print("FastAPI app and bot shutting down!")
 
+# ==================== BOT /START COMMAND ====================
 @bot.on_message(filters.command("start") & filters.private)
 async def start_command(client, message):
-    text = """🎬 **Welcome to Movies Magic Club!** 🎬
+    text = """🎬 **Welcome to Movies Magic Club!**
 
-Your ultimate destination for movies and series! 🍿
+Your ultimate destination for movies and series!
 
-✨ **What we offer:**
-📽️ Latest Movies & Series
-🌍 Multiple Languages
-🎥 HD Quality Content
-⚡ Fast Streaming
+**What we offer:**
+✅ Latest Movies
+✅ Series
+✅ Multiple Languages
+✅ HD Quality Content
+✅ Fast Streaming
 
-🚀 **Get Started Below!**"""
-
+**Get Started Below!** 👇"""
+    
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("🌐 Open Website", url="https://remote-joceline-rolex44-e142432f.koyeb.app")],
         [InlineKeyboardButton("📢 Join for Updates", url="https://t.me/moviesmagicclub3")]
@@ -104,6 +113,7 @@ Your ultimate destination for movies and series! 🍿
     
     await message.reply_text(text, reply_markup=keyboard)
 
+# ==================== HEALTH CHECK ROUTES ====================
 @app.get("/status")
 async def status():
     return {"status": "ok"}
@@ -112,58 +122,105 @@ async def status():
 async def root():
     return {"message": "Movies Magic Club API is running."}
 
-# ---- FIXED POSTER UPLOAD ----
+# ==================== POSTER UPLOAD API (SMART HYBRID) ====================
 @app.post("/api/poster/upload")
-async def api_poster_upload(
+async def upload_poster(
     movie_title: str = Form(...),
     description: str = Form(""), 
     image: UploadFile = File(...)
 ):
+    """
+    1. Save uploaded image to a temp file.
+    2. Upload to Telegram channel (unlimited storage).
+    3. Upload to Catbox (fast CDN).
+    4. Save both references to MongoDB.
+    """
     tmp_path = None
+    telegram_file_id = None
+    telegram_message_id = None
+    catbox_url = None
+    
     try:
-        # 1. Save to temp file
-        suffix = os.path.splitext(image.filename)[1] or ".jpg"
+        # 1. Save upload to temp file
+        suffix = os.path.splitext(image.filename)[-1] or ".jpg"
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_file:
             content = await image.read()
             tmp_file.write(content)
             tmp_path = tmp_file.name
 
-        print(f"[DEBUG] Uploading to Catbox: {tmp_path}")
+        print(f"[DEBUG] Starting hybrid upload: {movie_title}")
 
-        # 2. Upload to Catbox.moe (Free, No API Key Required)
-        catbox_url = "https://catbox.moe/user/api.php"
-        
-        with open(tmp_path, 'rb') as f:
-            files = {'fileToUpload': (image.filename, f, 'image/jpeg')}
-            data = {
-                'reqtype': 'fileupload',
-            }
-            
-            response = requests.post(catbox_url, files=files, data=data, timeout=30)
-        
-        if response.status_code == 200:
-            final_image_url = response.text.strip()
-            
-            # Validate URL
-            if final_image_url.startswith('http'):
-                print(f"[SUCCESS] Permanent URL: {final_image_url}")
-            else:
-                raise Exception(f"Invalid Catbox response: {final_image_url}")
+        # 2. UPLOAD TO TELEGRAM CHANNEL (UNLIMITED BACKUP)
+        if POSTER_CHANNEL_ID != 0:
+            try:
+                print(f"[DEBUG] Uploading to Telegram channel: {POSTER_CHANNEL_ID}")
+                tg_msg = await bot.send_photo(
+                    POSTER_CHANNEL_ID,
+                    tmp_path,
+                    caption=f"🎬 **{movie_title}**\n\n{description}"
+                )
+                
+                # Get file_id (permanent) from highest-resolution photo
+                photo = tg_msg.photo
+                if isinstance(photo, list):
+                    telegram_file_id = photo[-1].file_id
+                else:
+                    telegram_file_id = photo.file_id
+                    
+                telegram_message_id = tg_msg.id
+                
+                print(f"[SUCCESS] Telegram: file_id={telegram_file_id}")
+            except Exception as e:
+                print(f"[WARNING] Telegram upload failed: {e}")
         else:
-            raise Exception(f"Catbox upload failed: HTTP {response.status_code}")
+            print("[WARNING] POSTER_CHANNEL_ID not configured")
 
-        # 3. Save to MongoDB
+        # 3. UPLOAD TO CATBOX (FAST CDN)
+        try:
+            print(f"[DEBUG] Uploading to Catbox...")
+            catbox_api = "https://catbox.moe/user/api.php"
+            
+            with open(tmp_path, 'rb') as f:
+                files = {'fileToUpload': (image.filename, f, 'image/jpeg')}
+                data = {'reqtype': 'fileupload'}
+                response = requests.post(catbox_api, files=files, data=data, timeout=30)
+            
+            if response.status_code == 200:
+                catbox_url = response.text.strip()
+                if catbox_url.startswith('http'):
+                    print(f"[SUCCESS] Catbox URL: {catbox_url}")
+                else:
+                    raise Exception(f"Invalid Catbox response")
+            else:
+                raise Exception(f"Catbox failed: HTTP {response.status_code}")
+                
+        except Exception as e:
+            print(f"[WARNING] Catbox upload failed: {e}")
+            catbox_url = None
+
+        # 4. CHECK IF AT LEAST ONE SUCCEEDED
+        if not telegram_file_id and not catbox_url:
+            raise Exception("Both Telegram and Catbox uploads failed")
+
+        # 5. DETERMINE PRIMARY URL (Catbox preferred for speed)
+        primary_url = catbox_url if catbox_url else None
+        
+        # 6. SAVE TO MONGODB
         movie = {
             "title": movie_title,
             "description": description,
-            "image_url": final_image_url,
-            "file_id": "catbox_hosted",
+            "poster_catbox": catbox_url,  # Primary (fast, permanent)
+            "telegram_file_id": telegram_file_id,  # Backup (unlimited, regenerate when needed)
+            "telegram_message_id": telegram_message_id,
+            "poster_primary": primary_url,
+            "storage_type": "hybrid" if (catbox_url and telegram_file_id) else "single",
+            "uploaded_at": datetime.utcnow()
         }
         
         result = await poster_db.movies.insert_one(movie)
         print(f"[DEBUG] Movie inserted with ID: {result.inserted_id}")
 
-        # Clean up
+        # 7. Clean up temp file
         try:
             if tmp_path and os.path.exists(tmp_path):
                 os.remove(tmp_path)
@@ -173,10 +230,11 @@ async def api_poster_upload(
         return JSONResponse({
             "success": True,
             "message": "Poster uploaded and saved!",
-            "url": final_image_url
+            "url": primary_url
         })
 
     except BadRequest as e:
+        print(f"[ERROR] Poster upload failed (BadRequest): {e.MESSAGE}")
         try:
             if tmp_path and os.path.exists(tmp_path):
                 os.remove(tmp_path)
@@ -192,16 +250,55 @@ async def api_poster_upload(
         except OSError:
             pass
         return JSONResponse({"success": False, "error": str(e)}, status_code=200)
+
+
+# ==================== GET POSTER URL (WITH AUTO-FALLBACK) ====================
+@app.get("/api/poster/{poster_id}")
+async def get_poster_url(poster_id: str):
+    """Get poster URL with automatic fallback from Telegram if Catbox fails"""
+    try:
+        poster = await poster_db.movies.find_one({"_id": ObjectId(poster_id)})
         
-            
+        if not poster:
+            raise HTTPException(status_code=404, detail="Poster not found")
+        
+        # Try Catbox first (fast, permanent)
+        if poster.get("poster_catbox"):
+            return JSONResponse({
+                "url": poster["poster_catbox"],
+                "source": "catbox",
+                "fallback_available": poster.get("telegram_file_id") is not None
+            })
+        
+        # Fallback to Telegram (regenerate URL from file_id)
+        if poster.get("telegram_file_id"):
+            try:
+                file_info = await bot.get_file(poster["telegram_file_id"])
+                telegram_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
+                
+                return JSONResponse({
+                    "url": telegram_url,
+                    "source": "telegram",
+                    "note": "Regenerated from file_id"
+                })
+            except Exception as e:
+                print(f"[ERROR] Telegram fallback failed: {e}")
+                raise HTTPException(status_code=500, detail="All sources failed")
+        
+        raise HTTPException(status_code=404, detail="No poster sources available")
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
+# ==================== DEBUG ROUTES ====================
 @app.get("/debug/config")
 async def debug_config():
     return {
         "channel_id": CHANNEL_ID,
+        "poster_channel_id": POSTER_CHANNEL_ID,
         "bot_token_start": BOT_TOKEN[:10],
-        "bot_token_length": len(BOT_TOKEN),
+        "bot_token_length": len(BOT_TOKEN)
     }
 
 @app.get("/debug/channel")
@@ -212,22 +309,22 @@ async def debug_channel():
             "ok": True,
             "id": chat.id,
             "title": chat.title,
-            "type": str(chat.type),
+            "type": str(chat.type)
         }
     except BadRequest as e:
         return {
             "ok": False,
             "error_type": "BadRequest",
-            "message": e.MESSAGE,
+            "message": e.MESSAGE
         }
     except Exception as e:
         return {
             "ok": False,
             "error_type": type(e).__name__,
-            "message": str(e),
+            "message": str(e)
         }
 
+# ==================== RUN SERVER ====================
 if __name__ == "__main__":
-    import uvicorn
     port = int(os.getenv("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
