@@ -9,14 +9,13 @@ from pyrogram.errors import BadRequest
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ---- MONKEY PATCH FOR PYROGRAM ----
-# https://github.com/pyrogram/pyrogram/pull/1430
 from pyrogram import utils as pyrou  # type: ignore
-pyrou.MIN_CHAT_ID = -999999999999  # allow all new groups
-pyrou.MIN_CHANNEL_ID = -1007852516352  # allow all new channels
+pyrou.MIN_CHAT_ID = -999999999999
+pyrou.MIN_CHANNEL_ID = -1007852516352
 # ---- END FIX ----
 
 from motor.motor_asyncio import AsyncIOMotorClient
-import requests  # For Telegraph upload
+import requests
 
 from db import connect_to_mongo, close_mongo_connection
 from routes.movies import router as movies_router
@@ -35,9 +34,6 @@ from routes import notice, admin_notice
 
 from config import API_ID, API_HASH, BOT_TOKEN, CHANNEL_ID, MONGO_URI, MONGO_DB
 
-# -------------------------------------------------------------------
-# CONFIGURATION
-# -------------------------------------------------------------------
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-this-secret")
 
 app = FastAPI(title="Movies Magic Club 2.0")
@@ -46,9 +42,7 @@ app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# -------------------------------------------------------------------
 # ROUTERS
-# -------------------------------------------------------------------
 app.include_router(web_router)
 app.include_router(movies_router)
 app.include_router(series_router)
@@ -64,9 +58,7 @@ app.include_router(legal_router)
 app.include_router(notice.router)
 app.include_router(admin_notice.router)
 
-# -------------------------------------------------------------------
-# TELEGRAM BOT CLIENT (Pyrogram)
-# -------------------------------------------------------------------
+# BOT CLIENT
 bot = Client(
     "movie_webapp_bot",
     api_id=API_ID,
@@ -75,13 +67,9 @@ bot = Client(
     in_memory=True
 )
 
-# Separate Mongo client for poster collection
 mongo_client = AsyncIOMotorClient(MONGO_URI)
 poster_db = mongo_client[MONGO_DB if MONGO_DB else "movies_magic_club"]
 
-# -------------------------------------------------------------------
-# LIFECYCLE EVENTS
-# -------------------------------------------------------------------
 @app.on_event("startup")
 async def on_startup():
     await connect_to_mongo()
@@ -95,12 +83,8 @@ async def on_shutdown():
     mongo_client.close()
     print("FastAPI app and bot shutting down!")
 
-# -------------------------------------------------------------------
-# BOT COMMAND HANDLERS
-# -------------------------------------------------------------------
 @bot.on_message(filters.command("start") & filters.private)
 async def start_command(client, message):
-    # Eye-catching welcome message
     text = """🎬 **Welcome to Movies Magic Club!** 🎬
 
 Your ultimate destination for movies and series! 🍿
@@ -113,7 +97,6 @@ Your ultimate destination for movies and series! 🍿
 
 🚀 **Get Started Below!**"""
 
-    # Inline keyboard with two buttons
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("🌐 Open Website", url="https://remote-joceline-rolex44-e142432f.koyeb.app")],
         [InlineKeyboardButton("📢 Join for Updates", url="https://t.me/moviesmagicclub3")]
@@ -121,9 +104,6 @@ Your ultimate destination for movies and series! 🍿
     
     await message.reply_text(text, reply_markup=keyboard)
 
-# -------------------------------------------------------------------
-# API ROUTES
-# -------------------------------------------------------------------
 @app.get("/status")
 async def status():
     return {"status": "ok"}
@@ -132,23 +112,15 @@ async def status():
 async def root():
     return {"message": "Movies Magic Club API is running."}
 
-# -------------------------------------------------------------------
-# POSTER UPLOAD API (UPDATED FOR PERMANENT TELEGRAPH LINKS)
-# -------------------------------------------------------------------
+# ---- FIXED POSTER UPLOAD ----
 @app.post("/api/poster/upload")
 async def api_poster_upload(
     movie_title: str = Form(...),
-    description: str = Form(...),
+    description: str = Form(""),  # <--- FIXED: Made optional with default empty string
     image: UploadFile = File(...)
 ):
-    """
-    1. Save uploaded image to a temp file.
-    2. Upload to Telegraph for PERMANENT link.
-    3. Save record to MongoDB.
-    """
     tmp_path = None
     try:
-        # 1. Save to temp file
         suffix = os.path.splitext(image.filename)[1] or ".jpg"
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp_file:
             content = await image.read()
@@ -157,7 +129,6 @@ async def api_poster_upload(
 
         print(f"[DEBUG] Uploading to Telegraph: {tmp_path}")
 
-        # 2. Upload to Telegraph (Permanent Hosting)
         telegraph_url = "https://telegra.ph/upload"
         
         with open(tmp_path, 'rb') as f:
@@ -170,7 +141,6 @@ async def api_poster_upload(
         try:
             json_response = response.json()
             if isinstance(json_response, list) and 'src' in json_response[0]:
-                # Success! Build full URL
                 final_image_url = "https://telegra.ph" + json_response[0]['src']
                 print(f"[SUCCESS] Permanent URL: {final_image_url}")
             elif 'error' in json_response:
@@ -182,7 +152,6 @@ async def api_poster_upload(
             print(f"[ERROR] Telegraph upload failed: {e}")
             raise e
 
-        # 3. Save movie record in Mongo
         movie = {
             "title": movie_title,
             "description": description,
@@ -193,7 +162,6 @@ async def api_poster_upload(
         result = await poster_db.movies.insert_one(movie)
         print(f"[DEBUG] Movie inserted with ID: {result.inserted_id}")
 
-        # Clean up temp file
         try:
             if tmp_path and os.path.exists(tmp_path):
                 os.remove(tmp_path)
@@ -230,9 +198,6 @@ async def api_poster_upload(
             "error": str(e)
         }, status_code=200)
 
-# -------------------------------------------------------------------
-# DEBUG ENDPOINTS
-# -------------------------------------------------------------------
 @app.get("/debug/config")
 async def debug_config():
     return {
@@ -264,9 +229,6 @@ async def debug_channel():
             "message": str(e),
         }
 
-# -------------------------------------------------------------------
-# RUN
-# -------------------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
