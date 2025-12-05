@@ -36,7 +36,7 @@ from routes.admin_verification import router as admin_verification_router
 from routes.support import router as support_router
 from routes.legal import router as legal_router
 from routes import notice, admin_notice
-from routes import admin_automation  # NEW IMPORT
+
 from config import API_ID, API_HASH, BOT_TOKEN, CHANNEL_ID, MONGO_URI, MONGO_DB
 
 # ==================== CONFIGURATION ====================
@@ -63,7 +63,7 @@ app.include_router(support_router)
 app.include_router(legal_router)
 app.include_router(notice.router)
 app.include_router(admin_notice.router)
-app.include_router(admin_automation.router, tags=["Admin Automation"])
+
 
 # ==================== PYROGRAM BOT SETUP ====================
 bot = Client(
