@@ -24,9 +24,10 @@ BOT_USERNAME = os.getenv("BOT_USERNAME", "Movie_magic_club_bot")
 MONGO_URI = os.getenv("MONGO_URI", "")
 MONGO_DB = os.getenv("MONGO_DB", "movies_magic_club")
 
+# ImgBB API Key (NEW - ADD THIS)
+IMGBB_API_KEY = os.getenv("IMGBB_API_KEY", "e613b8ab80d373ca61a4ad388461ba59")
+
 # Basic sanity check for required vars
 if not API_ID or not API_HASH or not BOT_TOKEN:
     print("❌ Please set API_ID, API_HASH, BOT_TOKEN as env variables")
-
-
     
