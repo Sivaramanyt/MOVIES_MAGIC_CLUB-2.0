@@ -1,5 +1,6 @@
 import os
 import tempfile
+import base64
 from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -15,11 +16,9 @@ from bson import ObjectId
 import uvicorn
 
 # ==================== MONKEY PATCH FIX ====================
-# https://github.com/pyrogram/pyrogram/pull/1430
-from pyrogram import utils as pyro_utils  # type: ignore
-pyro_utils.MIN_CHAT_ID = -999999999999  # allow all new groups
-pyro_utils.MIN_CHANNEL_ID = -1007852516352  # allow all new channels
-# ---- END FIX ----
+from pyrogram import utils as pyro_utils # type: ignore
+pyro_utils.MIN_CHAT_ID = -999999999999
+pyro_utils.MIN_CHANNEL_ID = -1007852516352
 
 # ==================== IMPORTS FROM YOUR MODULES ====================
 from db import connect_to_mongo, close_mongo_connection
@@ -36,12 +35,12 @@ from routes.admin_verification import router as admin_verification_router
 from routes.support import router as support_router
 from routes.legal import router as legal_router
 from routes import notice, admin_notice
-
 from config import API_ID, API_HASH, BOT_TOKEN, CHANNEL_ID, MONGO_URI, MONGO_DB
 
 # ==================== CONFIGURATION ====================
-POSTER_CHANNEL_ID = int(os.environ.get("POSTER_CHANNEL_ID", "0"))  # ADD THIS TO YOUR ENV
+POSTER_CHANNEL_ID = int(os.environ.get("POSTER_CHANNEL_ID", "0"))
 SESSION_SECRET = os.getenv("SESSION_SECRET", "change-this-secret")
+IMGBB_API_KEY = os.getenv("IMGBB_API_KEY", "e613b8ab80d373ca61a4ad388461ba59")  # ADD THIS TO YOUR ENV
 
 # ==================== FASTAPI SETUP ====================
 app = FastAPI(title="Movies Magic Club 2.0")
@@ -64,7 +63,6 @@ app.include_router(legal_router)
 app.include_router(notice.router)
 app.include_router(admin_notice.router)
 
-
 # ==================== PYROGRAM BOT SETUP ====================
 bot = Client(
     "movie_webapp_bot",
@@ -76,7 +74,7 @@ bot = Client(
 
 # ==================== DATABASE SETUP ====================
 mongo_client = AsyncIOMotorClient(MONGO_URI)
-poster_db = mongo_client[MONGO_DB if MONGO_DB else "movies_magic_club"]  # Separate Mongo client for poster collection
+poster_db = mongo_client[MONGO_DB if MONGO_DB else "movies_magic_club"]
 
 # ==================== STARTUP/SHUTDOWN ====================
 @app.on_event("startup")
@@ -112,7 +110,6 @@ Your ultimate destination for movies and series!
         [InlineKeyboardButton("🌐 Open Website", url="https://remote-joceline-rolex44-e142432f.koyeb.app")],
         [InlineKeyboardButton("📢 Join for Updates", url="https://t.me/moviesmagicclub3")]
     ])
-    
     await message.reply_text(text, reply_markup=keyboard)
 
 # ==================== HEALTH CHECK ROUTES ====================
@@ -124,23 +121,23 @@ async def status():
 async def root():
     return {"message": "Movies Magic Club API is running."}
 
-# ==================== POSTER UPLOAD API (SMART HYBRID) ====================
+# ==================== POSTER UPLOAD API (IMGBB + TELEGRAM HYBRID) ====================
 @app.post("/api/poster/upload")
 async def upload_poster(
     movie_title: str = Form(...),
-    description: str = Form(""), 
+    description: str = Form(""),
     image: UploadFile = File(...)
 ):
     """
     1. Save uploaded image to a temp file.
-    2. Upload to Telegram channel (unlimited storage).
-    3. Upload to Catbox (fast CDN).
+    2. Upload to Telegram channel (unlimited storage backup).
+    3. Upload to ImgBB (fast CDN with better reliability).
     4. Save both references to MongoDB.
     """
     tmp_path = None
     telegram_file_id = None
     telegram_message_id = None
-    catbox_url = None
+    imgbb_url = None
     
     try:
         # 1. Save upload to temp file
@@ -149,9 +146,9 @@ async def upload_poster(
             content = await image.read()
             tmp_file.write(content)
             tmp_path = tmp_file.name
-
+        
         print(f"[DEBUG] Starting hybrid upload: {movie_title}")
-
+        
         # 2. UPLOAD TO TELEGRAM CHANNEL (UNLIMITED BACKUP)
         if POSTER_CHANNEL_ID != 0:
             try:
@@ -162,79 +159,89 @@ async def upload_poster(
                     caption=f"🎬 **{movie_title}**\n\n{description}"
                 )
                 
-                # Get file_id (permanent) from highest-resolution photo
+                # Get file_id from highest-resolution photo
                 photo = tg_msg.photo
                 if isinstance(photo, list):
                     telegram_file_id = photo[-1].file_id
                 else:
                     telegram_file_id = photo.file_id
-                    
                 telegram_message_id = tg_msg.id
-                
                 print(f"[SUCCESS] Telegram: file_id={telegram_file_id}")
             except Exception as e:
                 print(f"[WARNING] Telegram upload failed: {e}")
         else:
             print("[WARNING] POSTER_CHANNEL_ID not configured")
-
-        # 3. UPLOAD TO CATBOX (FAST CDN)
+        
+        # 3. UPLOAD TO IMGBB (FAST CDN - BETTER THAN CATBOX)
         try:
-            print(f"[DEBUG] Uploading to Catbox...")
-            catbox_api = "https://catbox.moe/user/api.php"
+            print(f"[DEBUG] Uploading to ImgBB...")
             
+            # Read image and convert to base64
             with open(tmp_path, 'rb') as f:
-                files = {'fileToUpload': (image.filename, f, 'image/jpeg')}
-                data = {'reqtype': 'fileupload'}
-                response = requests.post(catbox_api, files=files, data=data, timeout=30)
+                image_data = base64.b64encode(f.read()).decode('utf-8')
+            
+            # ImgBB API endpoint
+            imgbb_api = "https://api.imgbb.com/1/upload"
+            
+            # Prepare payload
+            payload = {
+                'key': IMGBB_API_KEY,
+                'image': image_data,
+                'name': movie_title.replace(" ", "_")
+            }
+            
+            # Make POST request
+            response = requests.post(imgbb_api, data=payload, timeout=30)
             
             if response.status_code == 200:
-                catbox_url = response.text.strip()
-                if catbox_url.startswith('http'):
-                    print(f"[SUCCESS] Catbox URL: {catbox_url}")
+                result = response.json()
+                if result.get('success'):
+                    imgbb_url = result['data']['url']
+                    print(f"[SUCCESS] ImgBB URL: {imgbb_url}")
                 else:
-                    raise Exception(f"Invalid Catbox response")
+                    raise Exception(f"ImgBB API error: {result.get('error', {}).get('message', 'Unknown error')}")
             else:
-                raise Exception(f"Catbox failed: HTTP {response.status_code}")
+                raise Exception(f"ImgBB failed: HTTP {response.status_code}")
                 
         except Exception as e:
-            print(f"[WARNING] Catbox upload failed: {e}")
-            catbox_url = None
-
+            print(f"[WARNING] ImgBB upload failed: {e}")
+            imgbb_url = None
+        
         # 4. CHECK IF AT LEAST ONE SUCCEEDED
-        if not telegram_file_id and not catbox_url:
-            raise Exception("Both Telegram and Catbox uploads failed")
-
-        # 5. DETERMINE PRIMARY URL (Catbox preferred for speed)
-        primary_url = catbox_url if catbox_url else None
+        if not telegram_file_id and not imgbb_url:
+            raise Exception("Both Telegram and ImgBB uploads failed")
+        
+        # 5. DETERMINE PRIMARY URL (ImgBB preferred for speed and reliability)
+        primary_url = imgbb_url if imgbb_url else None
         
         # 6. SAVE TO MONGODB
         movie = {
             "title": movie_title,
             "description": description,
-            "poster_catbox": catbox_url,  # Primary (fast, permanent)
-            "telegram_file_id": telegram_file_id,  # Backup (unlimited, regenerate when needed)
+            "poster_imgbb": imgbb_url,  # Primary (fast, permanent, no ISP blocking)
+            "telegram_file_id": telegram_file_id,  # Backup (unlimited storage)
             "telegram_message_id": telegram_message_id,
             "poster_primary": primary_url,
-            "storage_type": "hybrid" if (catbox_url and telegram_file_id) else "single",
+            "storage_type": "hybrid" if (imgbb_url and telegram_file_id) else "single",
             "uploaded_at": datetime.utcnow()
         }
         
         result = await poster_db.movies.insert_one(movie)
         print(f"[DEBUG] Movie inserted with ID: {result.inserted_id}")
-
+        
         # 7. Clean up temp file
         try:
             if tmp_path and os.path.exists(tmp_path):
                 os.remove(tmp_path)
         except OSError:
             pass
-
+        
         return JSONResponse({
             "success": True,
             "message": "Poster uploaded and saved!",
             "url": primary_url
         })
-
+        
     except BadRequest as e:
         print(f"[ERROR] Poster upload failed (BadRequest): {e.MESSAGE}")
         try:
@@ -253,22 +260,20 @@ async def upload_poster(
             pass
         return JSONResponse({"success": False, "error": str(e)}, status_code=200)
 
-
 # ==================== GET POSTER URL (WITH AUTO-FALLBACK) ====================
 @app.get("/api/poster/{poster_id}")
 async def get_poster_url(poster_id: str):
-    """Get poster URL with automatic fallback from Telegram if Catbox fails"""
+    """Get poster URL with automatic fallback from Telegram if ImgBB fails"""
     try:
         poster = await poster_db.movies.find_one({"_id": ObjectId(poster_id)})
-        
         if not poster:
             raise HTTPException(status_code=404, detail="Poster not found")
         
-        # Try Catbox first (fast, permanent)
-        if poster.get("poster_catbox"):
+        # Try ImgBB first (fast, permanent, no blocking)
+        if poster.get("poster_imgbb"):
             return JSONResponse({
-                "url": poster["poster_catbox"],
-                "source": "catbox",
+                "url": poster["poster_imgbb"],
+                "source": "imgbb",
                 "fallback_available": poster.get("telegram_file_id") is not None
             })
         
@@ -277,7 +282,6 @@ async def get_poster_url(poster_id: str):
             try:
                 file_info = await bot.get_file(poster["telegram_file_id"])
                 telegram_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info.file_path}"
-                
                 return JSONResponse({
                     "url": telegram_url,
                     "source": "telegram",
@@ -292,7 +296,6 @@ async def get_poster_url(poster_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 # ==================== DEBUG ROUTES ====================
 @app.get("/debug/config")
 async def debug_config():
@@ -300,7 +303,8 @@ async def debug_config():
         "channel_id": CHANNEL_ID,
         "poster_channel_id": POSTER_CHANNEL_ID,
         "bot_token_start": BOT_TOKEN[:10],
-        "bot_token_length": len(BOT_TOKEN)
+        "bot_token_length": len(BOT_TOKEN),
+        "imgbb_api_configured": bool(IMGBB_API_KEY)
     }
 
 @app.get("/debug/channel")
